@@ -1,3 +1,5 @@
+using PRJ371_Project;
+
 namespace PRJ371_Test_Project
 {
     public class Tests
@@ -5,12 +7,16 @@ namespace PRJ371_Test_Project
         [SetUp]
         public void Setup()
         {
+            
         }
 
         [Test]
         public void Test1()
         {
-            Assert.Pass();
+            Test testScript = new Test();
+            string words = testScript.sayHello(1);
+            Assert.Equals(words, "Hello to me!");
+            //Assert.Pass();
         }
     }
 }
