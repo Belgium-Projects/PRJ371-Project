@@ -1,0 +1,51 @@
+{
+    "name": "Controls",
+    "maps": [
+        {
+            "name": "CarMap",
+            "id": "765e9799-ab73-41dc-8fe1-376eaf2f961a",
+            "actions": [
+                {
+                    "name": "New action",
+                    "type": "Button",
+                    "id": "bcd394e6-e825-4134-b5ae-29d2f50711ae",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "3f7b1ca2-0ab5-4e84-abd3-74f0beb49a08",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "New action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {
+            "name": "Keyboard & Mouse",
+            "bindingGroup": "Keyboard & Mouse",
+            "devices": [
+                {
+                    "devicePath": "<Keyboard>",
+                    "isOptional": false,
+                    "isOR": false
+                },
+                {
+                    "devicePath": "<Mouse>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        }
+    ]
+}
