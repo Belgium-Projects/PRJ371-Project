@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class RoadMaintenanceBeaconController : MonoBehaviour
+public class RoadMaintenanceBeacon : MonoBehaviour
 {
     // Radius within which cars should be warned
     public float warningRadius = 50.0f;

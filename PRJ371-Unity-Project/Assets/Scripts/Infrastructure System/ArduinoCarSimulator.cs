@@ -21,7 +21,7 @@ public class ArduinoCarSimulator : MonoBehaviour
             }
         }
         // Simulate receiving an API request from the traffic light
-        apiRequest = trafficLight.GetComponent<TrafficLightController>().GetApiRequest();
+        apiRequest = trafficLight.GetComponent<TrafficLight>().GetApiRequest();
 
         // Reacting to the API request
         switch (apiRequest)
