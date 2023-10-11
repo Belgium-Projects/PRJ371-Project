@@ -2,13 +2,22 @@
     "name": "Controls",
     "maps": [
         {
-            "name": "CarMap",
-            "id": "765e9799-ab73-41dc-8fe1-376eaf2f961a",
+            "name": "Player",
+            "id": "ed9aab4b-9753-43cd-b7a5-dd509e1763eb",
             "actions": [
                 {
-                    "name": "New action",
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "265b47c2-ac59-4862-85a3-f055bd7cc364",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Braking",
                     "type": "Button",
-                    "id": "bcd394e6-e825-4134-b5ae-29d2f50711ae",
+                    "id": "ef5cb3af-6973-4e6f-a8cf-e3817a92f68c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -17,13 +26,220 @@
             ],
             "bindings": [
                 {
+                    "name": "WASD",
+                    "id": "bac7ccde-0b18-4d22-80d6-fe77e4ee75c2",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "c847cecb-4f65-4fdc-b416-40e1c2cfa7c3",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "f8454821-f9ef-4fb0-930a-08d4dd4c969c",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "dd0e0b1c-bdc6-4474-ab70-aa799acbe1ff",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "b83096ff-0100-498b-a94b-d6c30f4e8cac",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
                     "name": "",
-                    "id": "3f7b1ca2-0ab5-4e84-abd3-74f0beb49a08",
+                    "id": "2143b296-2b03-4334-a5ca-f3c60b30ccfb",
                     "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Braking",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Camera",
+            "id": "dc8dd547-257a-4b3d-a1e5-7a9d0da6346d",
+            "actions": [
+                {
+                    "name": "Camera Move",
+                    "type": "Value",
+                    "id": "445ad19e-024b-47dc-acbf-5d53f63af318",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Camera Rotate",
+                    "type": "Value",
+                    "id": "c0cc9b33-ba99-4af1-83e7-caa24f5394eb",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Camera Rotate Toggle",
+                    "type": "Button",
+                    "id": "0f492ee8-ab40-45ab-94e8-1ee1287be8e8",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Camera Zoom",
+                    "type": "Value",
+                    "id": "7d397a0d-838f-4a5c-9625-4a1232ab41f4",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Camera Lock Toggle",
+                    "type": "Button",
+                    "id": "4243651e-269c-4fd9-b365-c113136260b7",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "Arrows",
+                    "id": "c8b748b9-2219-4b2c-abfd-b72ac819a4a2",
+                    "path": "2DVector",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Camera Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "d4a87e71-1df5-4d7d-b159-786b03590c69",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
                     "groups": "Keyboard & Mouse",
-                    "action": "New action",
+                    "action": "Camera Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "55e3f238-072d-46a4-a89c-42a71d520976",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "eba5c4c8-bd78-4c7f-bb69-f0da0749caf3",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "c58fb8c9-cdd8-4ec6-a24e-282a4fb2a4bb",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "ac7fd64d-5523-4093-9f45-0b5a5adb436b",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Rotate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cf9638da-9f2c-47d5-a11f-4fea97fd0253",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Rotate Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7403cbf9-4802-4bd4-a1ac-197cb5aea9b5",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "NormalizeVector2",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Zoom",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "12aab0a0-0d70-4db1-b7fc-7ac034066d9d",
+                    "path": "<Keyboard>/rightShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera Lock Toggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -31,6 +247,28 @@
         }
     ],
     "controlSchemes": [
+        {
+            "name": "Keyboard",
+            "bindingGroup": "Keyboard",
+            "devices": [
+                {
+                    "devicePath": "<Keyboard>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "Mouse",
+            "bindingGroup": "Mouse",
+            "devices": [
+                {
+                    "devicePath": "<Mouse>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
         {
             "name": "Keyboard & Mouse",
             "bindingGroup": "Keyboard & Mouse",
