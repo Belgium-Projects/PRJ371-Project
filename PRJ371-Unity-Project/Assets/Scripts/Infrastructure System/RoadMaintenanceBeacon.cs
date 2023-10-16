@@ -4,7 +4,7 @@ using UnityEngine;
 public class RoadMaintenanceBeacon : MonoBehaviour
 {
     //Editor variables
-    [SerializeField] private float warningRadius = 50.0f;
+    //[SerializeField] private float warningRadius = 50.0f;
     [SerializeField] private GameObject beaconObj;
 
     //Global variables

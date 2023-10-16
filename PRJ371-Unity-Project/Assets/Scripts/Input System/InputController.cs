@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
@@ -19,6 +20,27 @@ public class InputController : MonoBehaviour
     private PlayerInput playerInput;
     private float braking;
     private AudioSource _audioSource;
+
+    //Arduino car variables
+    [SerializeField] private GameObject car;
+    [SerializeField] private float maxSpeed;
+    [SerializeField] private float speedChange = 2.0f;
+    private apiEvents apiRequest;
+    private float speed;
+
+    //Arduino events enum
+    public enum apiEvents
+    {
+        GO,
+        SLOWDOWN,
+        WARNING,
+        STOP
+    }
+    //Arduino event setting
+    public void ReceiveApiRequest(apiEvents request)
+    {
+        apiRequest = request;
+    }
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -26,12 +48,13 @@ public class InputController : MonoBehaviour
         {
             Debug.LogError("Player input component is missing");
         }
-
         _audioSource = GetComponent<AudioSource>();
         if (_audioSource == null)
         {
             Debug.LogError("Car missing audio source");
         }
+
+        ReceiveApiRequest(apiEvents.GO);
     }
     public void Braking(InputAction.CallbackContext context)
     {
@@ -86,6 +109,31 @@ public class InputController : MonoBehaviour
         //{
         //    Debug.Log("Spacebar key was pressed");
         //}
+        speed = ((car.GetComponent<Rigidbody>().velocity.magnitude * 3.6) <= maxSpeed) ? 
+            MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)) : maxSpeed;
+        //Debug.Log(speed.ToString("f0"));
+        switch (apiRequest)
+        {
+            case apiEvents.GO:
+                // Incrementally speed up the car to normal speed
+                speed = Mathf.Min(speed + speedChange * Time.deltaTime, 10.0f);
+                break;
+            case apiEvents.SLOWDOWN:
+                // Incrementally slow down the car
+                speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
+                break;
+            case apiEvents.WARNING:
+                // Incrementally slow down the car
+                speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
+                break;
+            case apiEvents.STOP:
+                // Incrementally bring the car to a stop
+                speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
+                break;
+            default:
+                // Do nothing (or maintain current speed)
+                break;
+        }
     }
     private void Move(float acceleration, float steering, float braking)
     {
