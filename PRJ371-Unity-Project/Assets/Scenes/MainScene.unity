@@ -3205,7 +3205,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e793b72c51ad1e0419f191dce2f0c255, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  warningRadius: 60
   beaconObj: {fileID: 1092024469}
 --- !u!1001 &1101936679
 PrefabInstance:
@@ -7875,14 +7874,44 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
+      propertyPath: maxBrake
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
       propertyPath: maxSpeed
-      value: 30
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: minSpeed
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: maxTorque
+      value: 120
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: brakeChange
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: playerInput
       value: 
       objectReference: {fileID: 752464076}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: speedChange
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: torqueChange
+      value: 0.3
+      objectReference: {fileID: 0}
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: _skidThreshold
@@ -7896,7 +7925,7 @@ PrefabInstance:
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: _maxBrakingTorque
-      value: 7000
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
