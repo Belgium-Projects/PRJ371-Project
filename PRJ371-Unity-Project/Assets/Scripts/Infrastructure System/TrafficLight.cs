@@ -27,9 +27,12 @@ public class TrafficLight : MonoBehaviour
     private float _timer = 0f;
     private int _colorIndex = 0;
     private InputController inputController;
-    public void ColliderTriggered(bool collided, Collider other, GameObject current)
+    private string _currentRoadDir;
+    public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
+    public void ColliderTriggered(Collider other, GameObject current)
     {
         Debug.Log(current.tag);
+
     }
     void Start()
     {

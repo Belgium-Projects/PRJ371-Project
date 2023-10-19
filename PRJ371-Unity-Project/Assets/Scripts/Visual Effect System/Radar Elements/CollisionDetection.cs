@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class CollisionDetection : MonoBehaviour
 {
+    //Global variables
     private InputController inputController;
     private RoadMaintenanceBeacon roadMaintenanceBeacon;
     private TrafficLight trafficLight;
+    private InputController InputController;
     void Start()
     {
         inputController = FindObjectOfType<InputController>();
         roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
         trafficLight = FindObjectOfType<TrafficLight>();
+        InputController = FindObjectOfType<InputController>();
 
         if (inputController == null)
         {
@@ -32,17 +35,35 @@ public class CollisionDetection : MonoBehaviour
         {
             switch (this.tag)
             {
+                case "North Road":
+                    trafficLight.currentRoadDir = this.tag;
+                    break;
+                case "East Road":
+                    trafficLight.currentRoadDir = this.tag;
+                    break;
+                case "South Road":
+                    trafficLight.currentRoadDir = this.tag;
+                    break;
+                case "West Road":
+                    trafficLight.currentRoadDir = this.tag;
+                    break;
+                case "Bend Road":
+                    trafficLight.currentRoadDir = this.tag;
+                    break;
+                case "North TrafficL":
+                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    break;
+                case "East TrafficL":
+                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    break;
+                case "West TrafficL":
+                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    break;
+                case "West StopS":
+                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    break;
                 case "Beacon":
-                    roadMaintenanceBeacon.ColliderTriggered(true, other, this.gameObject);
-                    break;
-                case "North":
-                    trafficLight.ColliderTriggered(true, other, this.gameObject);
-                    break;
-                case "East":
-                    trafficLight.ColliderTriggered(true, other, this.gameObject);
-                    break;
-                case "West":
-                    trafficLight.ColliderTriggered(true, other, this.gameObject);
+                    roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject);
                     break;
                 default: 
                     break;

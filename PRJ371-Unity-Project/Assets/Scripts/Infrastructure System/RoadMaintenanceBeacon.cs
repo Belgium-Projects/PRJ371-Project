@@ -12,7 +12,7 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     private SphereCollider beaconCollider;
     //private ArduinoCarSimulator carSimulator;
     private InputController inputController;
-    public void ColliderTriggered(bool collided, Collider other, GameObject current)
+    public void ColliderTriggered(Collider other, GameObject current)
     {
         inputController.ReceiveApiRequest(InputController.apiEvents.WARNING);
         Debug.Log(current.tag);

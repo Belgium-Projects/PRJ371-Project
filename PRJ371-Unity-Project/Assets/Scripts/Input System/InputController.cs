@@ -33,7 +33,9 @@ public class InputController : MonoBehaviour
     private int speedCalc;
     private float torqueCalc;
     private float torqueNow;
-
+    private Transform carTrans;
+    private FaceDir _currentFaceDir;
+    public FaceDir currentFaceDir { get {return _currentFaceDir;} set {_currentFaceDir = value;}}
     //Arduino events enum
     public enum apiEvents
     {
@@ -42,10 +44,38 @@ public class InputController : MonoBehaviour
         WARNING,
         STOP
     }
+    public enum FaceDir
+    {
+        North,
+        South,
+        East,
+        West
+    }
     //Arduino event setting
     public void ReceiveApiRequest(apiEvents request)
     {
         apiRequest = request;
+    }
+    private void CarDirectionCalc()
+    {
+        if (carTrans.localEulerAngles.y > 45f && carTrans.localEulerAngles.y <= 135f)
+        {
+            currentFaceDir = FaceDir.North;
+        }
+        else if (carTrans.localEulerAngles.y > 135f && carTrans.localEulerAngles.y <= 225f)
+        {
+            currentFaceDir = FaceDir.East;
+        }
+        else if (carTrans.localEulerAngles.y > 225f && carTrans.localEulerAngles.y <= 315f)
+        {
+            currentFaceDir = FaceDir.South;
+        }
+        else
+        {
+            currentFaceDir = FaceDir.West;
+        }
+        Debug.Log(currentFaceDir);
+        //Debug.Log(carTrans.localEulerAngles.y);
     }
     private void Awake()
     {
@@ -61,6 +91,7 @@ public class InputController : MonoBehaviour
         }
 
         ReceiveApiRequest(apiEvents.GO);
+        carTrans = car.GetComponent<Transform>();
     }
     public void Braking(InputAction.CallbackContext context)
     {
@@ -153,6 +184,7 @@ public class InputController : MonoBehaviour
         {
             Debug.Log("Min Speed Reached");
         }
+        CarDirectionCalc();
     }
     private void FixedUpdate()
     {
