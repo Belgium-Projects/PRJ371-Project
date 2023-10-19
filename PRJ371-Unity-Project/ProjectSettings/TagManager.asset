@@ -5,6 +5,15 @@ TagManager:
   serializedVersion: 2
   tags:
   - Car
+  - Beacon
+  - North Road
+  - East Road
+  - West Road
+  - North TrafficL
+  - East TrafficL
+  - West TrafficL
+  - Bend Road
+  - North StopS
   layers:
   - Default
   - TransparentFX

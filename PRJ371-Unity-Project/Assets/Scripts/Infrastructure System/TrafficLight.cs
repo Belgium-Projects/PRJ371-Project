@@ -20,16 +20,25 @@ public enum currentColor
 }
 public class TrafficLight : MonoBehaviour
 {
+    //Editor variables
+    [SerializeField] private List<TrafficLights> trafficLights;
+
     //Global variables
     private float _timer = 0f;
     private int _colorIndex = 0;
-
-    //Editor variables
-    [SerializeField]
-    private List<TrafficLights> trafficLights;
-
+    private InputController inputController;
+    public void ColliderTriggered(bool collided, Collider other, GameObject current)
+    {
+        Debug.Log(current.tag);
+    }
     void Start()
     {
+        inputController = FindObjectOfType<InputController>();
+
+        if (inputController == null)
+        {
+            Debug.LogError("No inputController script in the scene");
+        }
         //Initialize all the traffic lights
         UpdateLights(_colorIndex);
     }
@@ -73,7 +82,7 @@ public class TrafficLight : MonoBehaviour
             switch (color)
             {
                 case 0:
-                    if (light.parent.name == "Side_Traffic_Light_North")
+                    if (light.parent.tag == "North")
                     {
                         SetLightGreen(light);
                     }
@@ -83,7 +92,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 1:
-                    if (light.parent.name == "Side_Traffic_Light_North")
+                    if (light.parent.tag == "North")
                     {
                         SetLightYellow(light);
                     }
@@ -93,7 +102,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 2:
-                    if (light.parent.name == "Side_Traffic_Light_North")
+                    if (light.parent.tag == "North")
                     {
                         SetLightRed(light);
                     }
@@ -103,7 +112,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 3:
-                    if (light.parent.name == "Side_Traffic_Light_North")
+                    if (light.parent.tag == "North")
                     {
                         SetLightRed(light);
                     }

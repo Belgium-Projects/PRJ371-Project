@@ -131,7 +131,7 @@ public class InputController : MonoBehaviour
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
                 break;
             case apiEvents.WARNING:
-                MoveAccelerate(acceleration, steering, braking);
+                MoveDecelerate(acceleration, steering, braking);
                 // Incrementally slow down the car
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
                 break;
@@ -235,7 +235,7 @@ public class InputController : MonoBehaviour
                 _wheelColliders[i].brakeTorque = 0.3f * _maxBrakingTorque;
                 //_wheelColliders[i].motorTorque = thrustTorque;
                 Debug.Log("Slowing Down & Switch over to Stop");
-                ReceiveApiRequest(apiEvents.STOP);
+                //ReceiveApiRequest(apiEvents.STOP);
             }
             if (i < 2)
             {
