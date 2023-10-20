@@ -27,22 +27,52 @@ public class TrafficLight : MonoBehaviour
     private float _timer = 0f;
     private int _colorIndex = 0;
     private InputController inputController;
-    private string _currentRoadDir;
-    public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
+    private CollisionDetection collisionDetection;
+    //private string _currentRoadDir;
+    private InputController.FaceDir _currentFaceDir;
+    private InputController.FaceDir _currentRoadDir;
+    private float _timeBetweenObjs;
+    private bool receivedCarInfo;
+    private GameObject _current;
+    CollisionDetection[] _allColliders;
+    public bool roadDirChanged { get; set; }
+    //public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
     public void ColliderTriggered(Collider other, GameObject current)
     {
         Debug.Log(current.tag);
+        //_currentFaceDir = inputController.currentFaceDir;
+        _current = current;
+        inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+    }
+    public void ReceiveCarInfo(float timeBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
+    {
+        _timeBetweenObjs = timeBetweenObjs;
+        _currentFaceDir = currentFaceDir;
+        _currentRoadDir = currentRoadDir;
 
+        receivedCarInfo = true;
+    }
+    public void UpdateCarInfo(InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
+    {
+        _currentFaceDir = currentFaceDir;
+        _currentRoadDir = currentRoadDir;
     }
     void Start()
     {
-        inputController = FindObjectOfType<InputController>();
+        collisionDetection = FindObjectOfType<CollisionDetection>();
+        if (collisionDetection == null)
+        {
+            Debug.LogError("No collisionDetection script in the scene");
+        }
 
+        inputController = FindObjectOfType<InputController>();
         if (inputController == null)
         {
             Debug.LogError("No inputController script in the scene");
         }
         //Initialize all the traffic lights
+
+        _allColliders = collisionDetection.RetreiveAllColliders();
         UpdateLights(_colorIndex);
     }
 
@@ -58,6 +88,152 @@ public class TrafficLight : MonoBehaviour
         else if (_timer >= 10f)
         {
             TimerLogic();
+        }
+    }
+    private void LateUpdate()
+    {
+        if (receivedCarInfo)
+        {
+            CarTrafficLLogic();
+        }
+
+        if (roadDirChanged)
+        {
+            Debug.LogError("Trigerreddddddddddddddddddddddd");
+            Debug.LogError(roadDirChanged);
+            inputController.ReceiveApiRequest(InputController.apiEvents.UPDATEDIR);
+            foreach (TrafficLights light in trafficLights)
+            {
+                if (_currentRoadDir == InputController.FaceDir.South)
+                {
+                    
+                    Debug.LogError("11111111111111");
+                    if (_currentFaceDir == InputController.FaceDir.North)
+                    {
+                        Debug.LogError("22222222222222");
+                        if (light.parent.tag == "North TrafficL")
+                        {
+                            Debug.LogError("33333333333333");
+                            light.parent.GetComponent<Collider>().enabled = true;
+                            roadDirChanged = false;
+                        }
+                    }
+                }
+                else if (_currentRoadDir == InputController.FaceDir.East)
+                {
+                    if (_currentFaceDir == InputController.FaceDir.West)
+                    {
+                        if (light.parent.tag == "West TrafficL")
+                        {
+                            light.parent.GetComponent<Collider>().enabled = true;
+                            roadDirChanged = false;
+                        }
+                    }
+                }
+                else if (_currentRoadDir == InputController.FaceDir.West)
+                {
+                    if (_currentFaceDir == InputController.FaceDir.East)
+                    {
+                        if (light.parent.tag == "East TrafficL")
+                        {
+                            light.parent.GetComponent<Collider>().enabled = true;
+                            roadDirChanged = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private void CarTrafficLLogic()
+    {
+        Debug.LogError("Triggered CarTrafficLLogic");
+        Debug.LogError(_currentRoadDir);
+        if (_currentRoadDir == InputController.FaceDir.South)
+        {
+            Debug.Log("Triggered _currentRoadDir");
+            if (_currentFaceDir == InputController.FaceDir.North)
+            {
+                Debug.Log("Triggered _currentFaceDir");
+                _current.GetComponent<Collider>().enabled = true;
+
+                foreach (CollisionDetection collider in _allColliders)
+                {
+                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+                    {
+                        Debug.Log("Triggered collider.tag");
+                        collider.GetComponent<Collider>().enabled = false;
+                    }
+                }
+                receivedCarInfo = false;
+                SendApiRequest();
+            }
+        }
+        else if (_currentRoadDir == InputController.FaceDir.East)
+        {
+            if (_currentFaceDir == InputController.FaceDir.West)
+            {
+                _current.GetComponent<Collider>().enabled = true;
+
+                foreach (CollisionDetection collider in _allColliders)
+                {
+                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+                    {
+                        collider.GetComponent<Collider>().enabled = false;
+                    }
+                }
+                receivedCarInfo = false;
+                SendApiRequest();
+            }
+        }
+        else if (_currentRoadDir == InputController.FaceDir.West)
+        {
+            if (_currentFaceDir == InputController.FaceDir.East)
+            {
+                _current.GetComponent<Collider>().enabled = true;
+
+                foreach (CollisionDetection collider in _allColliders)
+                {
+                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+                    {
+                        collider.GetComponent<Collider>().enabled = false;
+                    }
+                }
+                receivedCarInfo = false;
+                SendApiRequest();
+            }
+        }
+        else
+        {
+            //North do nothing no traffic light
+        }
+    }
+    private void SendApiRequest()
+    {
+        Debug.Log("Triggered SendApiRequest");
+        foreach (TrafficLights light in trafficLights)
+        {
+            Debug.LogError("Run For Loop");
+            if (_current.tag == light.parent.tag)
+            {
+                Debug.LogError(_current.tag);
+                Debug.LogError(light.parent.tag);
+                if (light.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
+                {
+                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                }
+                else if (light.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
+                {
+                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                }
+                else if (light.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
+                {
+                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                }
+                else
+                {
+                    inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+                }
+            }
         }
     }
     private void TimerLogic()
@@ -127,6 +303,10 @@ public class TrafficLight : MonoBehaviour
                 default:
                     SetLightRed(light);
                     break;
+            }
+            if (light.currentSignal == currentColor.Green && inputController.apiRequest == InputController.apiEvents.STOP && !receivedCarInfo)
+            {
+                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
             }
         }
     }

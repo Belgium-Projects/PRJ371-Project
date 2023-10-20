@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
+using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 public class InputController : MonoBehaviour
 {
@@ -21,6 +23,8 @@ public class InputController : MonoBehaviour
     private PlayerInput playerInput;
     private float braking;
     private AudioSource _audioSource;
+    private TrafficLight trafficLight;
+    private RoadMaintenanceBeacon roadMaintenanceBeacon;
 
     //Arduino car variables
     [SerializeField] private GameObject car;
@@ -28,33 +32,48 @@ public class InputController : MonoBehaviour
     [SerializeField] private float minSpeed;
     [SerializeField] private float maxTorque;
     [SerializeField] private float torqueChange;
-    private apiEvents apiRequest;
+    private apiEvents _apiRequest;
+    public apiEvents apiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
+    private GameObject _infrastructureObj;
     private float speed;
     private int speedCalc;
     private float torqueCalc;
     private float torqueNow;
     private Transform carTrans;
     private FaceDir _currentFaceDir;
+    private FaceDir _currentRoadDir;
+    private float carDistance;
+    private float timeBetweenObjs;
     public FaceDir currentFaceDir { get {return _currentFaceDir;} set {_currentFaceDir = value;}}
+    public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
     //Arduino events enum
     public enum apiEvents
     {
         GO,
         SLOWDOWN,
         WARNING,
-        STOP
+        STOP,
+        SENDINFO,
+        UPDATEDIR
     }
     public enum FaceDir
     {
         North,
         South,
         East,
-        West
+        West,
+        Bend
     }
     //Arduino event setting
     public void ReceiveApiRequest(apiEvents request)
     {
         apiRequest = request;
+        Debug.Log("Triggered " + apiRequest + " Event!");
+    }
+    public void ReceiveApiObjRequest(apiEvents request, GameObject infrastructureObj)
+    {
+        apiRequest = request;
+        _infrastructureObj = infrastructureObj;
     }
     private void CarDirectionCalc()
     {
@@ -88,6 +107,16 @@ public class InputController : MonoBehaviour
         if (_audioSource == null)
         {
             Debug.LogError("Car missing audio source");
+        }
+        trafficLight = FindObjectOfType<TrafficLight>();
+        if (trafficLight == null)
+        {
+            Debug.LogError("No trafficLight script in the scene");
+        }
+        roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
+        if (roadMaintenanceBeacon == null)
+        {
+            Debug.LogError("No roadMaintenanceBeacon script in the scene");
         }
 
         ReceiveApiRequest(apiEvents.GO);
@@ -163,11 +192,23 @@ public class InputController : MonoBehaviour
                 break;
             case apiEvents.WARNING:
                 MoveDecelerate(acceleration, steering, braking);
+                TimeDistanceCalc(_infrastructureObj);
                 // Incrementally slow down the car
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
                 break;
             case apiEvents.STOP:
                 MoveStop(acceleration, steering, braking);
+                // Incrementally bring the car to a stop
+                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
+                break;
+            case apiEvents.SENDINFO:
+                TimeDistanceCalc(_infrastructureObj);
+                // Incrementally bring the car to a stop
+                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
+                break;
+            case apiEvents.UPDATEDIR:
+                trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
+                ReceiveApiRequest(apiEvents.GO);
                 // Incrementally bring the car to a stop
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;
@@ -184,11 +225,49 @@ public class InputController : MonoBehaviour
         {
             Debug.Log("Min Speed Reached");
         }
-        CarDirectionCalc();
     }
     private void FixedUpdate()
     {
         speedCalc = int.Parse(MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)).ToString("f0"));
+    }
+    private void TimeDistanceCalc(GameObject infrastructureObj)
+    {
+        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+        timeBetweenObjs = (carDistance / speedCalc) * 3.6f;
+        //Debug.Log(carDistance);
+        //Debug.Log(speedCalc);
+        //Debug.Log(timeBetweenObjs);
+        CarDirectionCalc();
+
+        switch (infrastructureObj.tag)
+        {
+            case "Beacon":
+                roadMaintenanceBeacon.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                break;
+            case "North StopS":
+                //trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir);
+                break;
+            case "North TrafficL":
+                Debug.LogError("North TrafficL");
+                Debug.LogError("Input RoadDir " + currentRoadDir);
+                Debug.LogError("Input CarDir " + currentFaceDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                break;
+            case "East TrafficL":
+                Debug.LogError("East TrafficL");
+                Debug.LogError("Input RoadDir " + currentRoadDir);
+                Debug.LogError("Input CarDir " + currentFaceDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                break;
+            case "West TrafficL":
+                Debug.LogError("West TrafficL");
+                Debug.LogError("Input RoadDir " + currentRoadDir);
+                Debug.LogError("Input CarDir " + currentFaceDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                break;
+            default:
+                break;
+        }
     }
     private void MoveAccelerate(float acceleration, float steering, float braking)
     {
