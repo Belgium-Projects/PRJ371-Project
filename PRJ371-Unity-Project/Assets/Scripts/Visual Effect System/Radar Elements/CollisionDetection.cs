@@ -86,7 +86,7 @@ public class CollisionDetection : MonoBehaviour
                     //trafficLight.ColliderTriggered(other, this.gameObject);
                     break;
                 case "Beacon":
-                    roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject);
+                    roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, true);
                     break;
                 default: 
                     break;
@@ -95,6 +95,16 @@ public class CollisionDetection : MonoBehaviour
             //inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
             //Debug.Log("Slow Down");
             //carSimulator.ReceiveApiRequest("SlowDown");
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Car"))
+        {
+            if (this.tag == "Beacon")
+            {
+                roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, false);
+            }
         }
     }
 }

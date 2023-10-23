@@ -13,6 +13,7 @@ public class InfoGUIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI eventHolder;
 
     //Global variables
+    private InputController inputController;
     private float _speedFiller = 0f;
     private int _speed = 0;
     private string _event = "Stop";
@@ -22,6 +23,12 @@ public class InfoGUIController : MonoBehaviour
         {
             Debug.LogError("The speed &| event holders is not added");
         }
+
+        inputController = FindObjectOfType<InputController>();
+        if (inputController == null)
+        {
+            Debug.LogError("No inputController script in the scene");
+        }
         speedBarHolder.fillAmount = _speedFiller;
         speedHolder.text = _speed.ToString();
         eventHolder.text = _event;
@@ -29,5 +36,13 @@ public class InfoGUIController : MonoBehaviour
     void Update()
     {
         
+    }
+    private void LateUpdate()
+    {
+        CallUIinfo();
+    }
+    private void CallUIinfo()
+    {
+        inputController.apiRequest.ToString();
     }
 }

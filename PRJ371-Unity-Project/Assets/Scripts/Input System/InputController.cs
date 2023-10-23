@@ -43,7 +43,11 @@ public class InputController : MonoBehaviour
     private FaceDir _currentFaceDir;
     private FaceDir _currentRoadDir;
     private float carDistance;
+    private float initialCarDistance;
+    private float beaconDistanceLeft;
     private float timeBetweenObjs;
+    private bool initialDistance;
+    private bool _pastBeacon;
     public FaceDir currentFaceDir { get {return _currentFaceDir;} set {_currentFaceDir = value;}}
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
     //Arduino events enum
@@ -68,12 +72,14 @@ public class InputController : MonoBehaviour
     public void ReceiveApiRequest(apiEvents request)
     {
         apiRequest = request;
-        Debug.Log("Triggered " + apiRequest + " Event!");
+        Debug.Log("1 ~ Triggered " + apiRequest + " Event!");
     }
     public void ReceiveApiObjRequest(apiEvents request, GameObject infrastructureObj)
     {
+        initialDistance = true;
         apiRequest = request;
         _infrastructureObj = infrastructureObj;
+        Debug.Log("2 ~ Triggered " + apiRequest + " Event!");
     }
     private void CarDirectionCalc()
     {
@@ -192,7 +198,6 @@ public class InputController : MonoBehaviour
                 break;
             case apiEvents.WARNING:
                 MoveDecelerate(acceleration, steering, braking);
-                TimeDistanceCalc(_infrastructureObj);
                 // Incrementally slow down the car
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
                 break;
@@ -207,8 +212,20 @@ public class InputController : MonoBehaviour
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;
             case apiEvents.UPDATEDIR:
-                trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
-                //ReceiveApiRequest(apiEvents.GO);
+                Debug.LogError(_infrastructureObj);
+                if (_infrastructureObj.tag.Contains("Road"))
+                {
+                    MoveAccelerate(acceleration, steering, braking);
+                    trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
+                    ReceiveApiRequest(apiEvents.GO);
+                }
+                else if (_infrastructureObj.tag.Contains("Beacon"))
+                {
+                    MoveDecelerate(acceleration, steering, braking);
+                    var result = UpdateDistanceCalc(_infrastructureObj);
+                    roadMaintenanceBeacon.UpdateCarInfo(result.carDistance, result.beaconDistanceLeft, result.pastBeacon);
+                    ReceiveApiRequest(apiEvents.WARNING);
+                }
                 // Incrementally bring the car to a stop
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;
@@ -230,6 +247,42 @@ public class InputController : MonoBehaviour
     {
         speedCalc = int.Parse(MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)).ToString("f0"));
     }
+    private (float beaconDistanceLeft, float carDistance, bool pastBeacon) UpdateDistanceCalc(GameObject infrastructureObj)
+    {
+        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+
+        if (carDistance < 0)
+        {
+            beaconDistanceLeft = initialCarDistance - carDistance;
+            _pastBeacon = true;
+        }
+        else
+        {
+            beaconDistanceLeft = 0f;
+            _pastBeacon = false;
+        }
+
+        return (beaconDistanceLeft, carDistance, _pastBeacon);
+    }
+    private void DistanceCalc(GameObject infrastructureObj)
+    {
+        if (initialDistance)
+        {
+            initialCarDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+            initialDistance = false;
+        }
+        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+
+        if (carDistance >= 0)
+        {
+            roadMaintenanceBeacon.ReceiveCarInfo(carDistance, currentFaceDir, currentRoadDir, true);
+        }
+        else if (carDistance < 0)
+        {
+            beaconDistanceLeft = initialCarDistance - carDistance;
+            roadMaintenanceBeacon.ReceiveCarInfo(beaconDistanceLeft, currentFaceDir, currentRoadDir, false);
+        }
+    }
     private void TimeDistanceCalc(GameObject infrastructureObj)
     {
         carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
@@ -242,7 +295,7 @@ public class InputController : MonoBehaviour
         switch (infrastructureObj.tag)
         {
             case "Beacon":
-                roadMaintenanceBeacon.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                DistanceCalc(infrastructureObj);
                 break;
             case "North StopS":
                 //trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir);

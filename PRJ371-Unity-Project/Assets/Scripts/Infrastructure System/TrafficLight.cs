@@ -39,6 +39,8 @@ public class TrafficLight : MonoBehaviour
     CollisionDetection[] _allColliders;
     private Dictionary<string, TrafficLights> trafficLDic;
     private TrafficLights selectTrafficL;
+    private bool updateDir;
+    //private bool _sendReq;
     public bool roadDirChanged { get; set; }
     //public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
     public void ColliderTriggered(Collider other, GameObject current, bool sendReq)
@@ -46,13 +48,16 @@ public class TrafficLight : MonoBehaviour
         Debug.Log(current.tag);
         //_currentFaceDir = inputController.currentFaceDir;
         _current = current;
+        //_sendReq = sendReq;
         if (sendReq)
         {
             inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+            //_sendReq = false;
         }
         else
         {
-            inputController.ReceiveApiRequest(InputController.apiEvents.UPDATEDIR);
+            //updateDir = true;
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, current);
             if (current.tag.Contains("South"))
             {
                 if (_currentFaceDir == InputController.FaceDir.North)
@@ -113,6 +118,21 @@ public class TrafficLight : MonoBehaviour
         _currentFaceDir = currentFaceDir;
         _currentRoadDir = currentRoadDir;
     }
+    public string UpdateUI()
+    {
+        string result = "N/A";
+        TrafficLights currentTrafficL;
+
+        if (receivedCarInfo)
+        {
+            if (trafficLDic.TryGetValue(_current.tag, out currentTrafficL))
+            {
+                result = inputController.apiRequest.ToString() + "," + currentTrafficL.currentSignal.ToString();
+            }
+        }
+
+        return result;
+    }
     void Start()
     {
         trafficLDic = trafficLights.ToDictionary(keySelector: m => m.parent.tag, elementSelector: m => m);
@@ -159,6 +179,12 @@ public class TrafficLight : MonoBehaviour
             SendApiRequest();
             receivedCarInfo = false;
         }
+
+        //if (updateDir)
+        //{
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, _current);
+        //    updateDir = false;
+        //}
 
         //if (roadDirChanged)
         //{

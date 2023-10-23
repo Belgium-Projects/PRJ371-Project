@@ -15,23 +15,68 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     private CollisionDetection collisionDetection;
     private InputController.FaceDir _currentFaceDir;
     private InputController.FaceDir _currentRoadDir;
-    private float _timeBetweenObjs;
+    private float _distanceBetweenObjs;
     private bool receivedCarInfo;
     private GameObject _current;
     CollisionDetection[] _allColliders;
-    public void ColliderTriggered(Collider other, GameObject current)
+    private bool updateDist;
+    private float _beaconDistanceLeft;
+    private bool _enteredCol;
+    private bool _pastBeacon;
+    public void ColliderTriggered(Collider other, GameObject current, bool enteredCol)
     {
         _current = current;
-        inputController.ReceiveApiObjRequest(InputController.apiEvents.WARNING, current);
-        Debug.Log(current.tag);
+        _enteredCol = enteredCol;
+
+        if (enteredCol)
+        {
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+            updateDist = true;
+        }
+        else
+        {
+            ///inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            updateDist = false;
+            SendApiRequest();
+        }
+        //Debug.Log(current.tag);
     }
-    public void ReceiveCarInfo(float timeBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
+    public void ReceiveCarInfo(float distanceBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir, bool pastBeacon)
     {
-        _timeBetweenObjs = timeBetweenObjs;
+        if (pastBeacon)
+        {
+            _distanceBetweenObjs = distanceBetweenObjs;
+        }
+        else
+        {
+            _beaconDistanceLeft = distanceBetweenObjs;
+        }
+        _pastBeacon = pastBeacon;
         _currentFaceDir = currentFaceDir;
         _currentRoadDir = currentRoadDir;
 
         receivedCarInfo = true;
+    }
+    public void UpdateCarInfo(float carDistance, float distanceBetweenObjs, bool pastBeacon)
+    {
+        _distanceBetweenObjs = carDistance;
+        _beaconDistanceLeft = distanceBetweenObjs;
+        _pastBeacon = pastBeacon;
+    }
+    public string UpdateUI()
+    {
+        string result = "NA";
+
+        if (_distanceBetweenObjs >= 0)
+        {
+            result = _distanceBetweenObjs.ToString("f0");
+        }
+        else if (_distanceBetweenObjs < 0)
+        {
+            result = _beaconDistanceLeft.ToString("f0");
+        }
+
+        return result;
     }
     private void Start()
     {
@@ -63,48 +108,63 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     {
         if (receivedCarInfo)
         {
-            CarBeaconLogic();
+            SendApiRequest();
+            //CarBeaconLogic();
+            receivedCarInfo = false;
+        }
+        if (updateDist)
+        {
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, _current);
         }
     }
-    private void CarBeaconLogic()
-    {
-        if (_currentRoadDir == InputController.FaceDir.West)
-        {
-            if (_currentFaceDir == InputController.FaceDir.West)
-            {
-                _current.GetComponent<Collider>().enabled = true;
+    //private void CarBeaconLogic()
+    //{
+    //    if (_currentRoadDir == InputController.FaceDir.West)
+    //    {
+    //        if (_currentFaceDir == InputController.FaceDir.West)
+    //        {
+    //            _current.GetComponent<Collider>().enabled = true;
 
-                foreach (CollisionDetection collider in _allColliders)
-                {
-                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
-                    {
-                        collider.GetComponent<Collider>().enabled = false;
-                    }
-                }
-                receivedCarInfo = false;
-                SendApiRequest();
-            }
-        }
-        else if (_currentRoadDir == InputController.FaceDir.West)
-        {
-            if (_currentFaceDir == InputController.FaceDir.East)
-            {
-                _current.GetComponent<Collider>().enabled = true;
+    //            foreach (CollisionDetection collider in _allColliders)
+    //            {
+    //                if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+    //                {
+    //                    collider.GetComponent<Collider>().enabled = false;
+    //                }
+    //            }
+    //            receivedCarInfo = false;
+    //            SendApiRequest();
+    //        }
+    //    }
+    //    else if (_currentRoadDir == InputController.FaceDir.West)
+    //    {
+    //        if (_currentFaceDir == InputController.FaceDir.East)
+    //        {
+    //            _current.GetComponent<Collider>().enabled = true;
 
-                foreach (CollisionDetection collider in _allColliders)
-                {
-                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
-                    {
-                        collider.GetComponent<Collider>().enabled = false;
-                    }
-                }
-                receivedCarInfo = false;
-                SendApiRequest();
-            }
-        }
-    }
+    //            foreach (CollisionDetection collider in _allColliders)
+    //            {
+    //                if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+    //                {
+    //                    collider.GetComponent<Collider>().enabled = false;
+    //                }
+    //            }
+    //            receivedCarInfo = false;
+    //            SendApiRequest();
+    //        }
+    //    }
+    //}
     private void SendApiRequest()
     {
-
+        if (_enteredCol)
+        {
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.WARNING, _current);
+            Debug.LogError("Collider Entered");
+        }
+        else
+        {
+            inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            Debug.LogError("Collider Existed");
+        }
     }
 }
