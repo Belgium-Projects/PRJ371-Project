@@ -208,7 +208,7 @@ public class InputController : MonoBehaviour
                 break;
             case apiEvents.UPDATEDIR:
                 trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
-                ReceiveApiRequest(apiEvents.GO);
+                //ReceiveApiRequest(apiEvents.GO);
                 // Incrementally bring the car to a stop
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;

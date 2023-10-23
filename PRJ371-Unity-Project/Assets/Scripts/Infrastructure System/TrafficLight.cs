@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 [System.Serializable]
 public class TrafficLights
@@ -35,14 +37,68 @@ public class TrafficLight : MonoBehaviour
     private bool receivedCarInfo;
     private GameObject _current;
     CollisionDetection[] _allColliders;
+    private Dictionary<string, TrafficLights> trafficLDic;
+    private TrafficLights selectTrafficL;
     public bool roadDirChanged { get; set; }
     //public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
-    public void ColliderTriggered(Collider other, GameObject current)
+    public void ColliderTriggered(Collider other, GameObject current, bool sendReq)
     {
         Debug.Log(current.tag);
         //_currentFaceDir = inputController.currentFaceDir;
         _current = current;
-        inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+        if (sendReq)
+        {
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+        }
+        else
+        {
+            inputController.ReceiveApiRequest(InputController.apiEvents.UPDATEDIR);
+            if (current.tag.Contains("South"))
+            {
+                if (_currentFaceDir == InputController.FaceDir.North)
+                {
+                    if (trafficLDic.TryGetValue("North TrafficL", out selectTrafficL))
+                    {
+                        ChangeTrafficLCol(selectTrafficL);
+                    }
+                }
+            }
+            else if (current.tag.Contains("East"))
+            {
+                if (_currentFaceDir == InputController.FaceDir.West)
+                {
+                    if (trafficLDic.TryGetValue("West TrafficL", out selectTrafficL))
+                    {
+                        ChangeTrafficLCol(selectTrafficL);
+                    }
+                }
+            }
+            else if (current.tag.Contains("West"))
+            {
+                if (_currentFaceDir == InputController.FaceDir.East)
+                {
+                    if (trafficLDic.TryGetValue("East TrafficL", out selectTrafficL))
+                    {
+                        ChangeTrafficLCol(selectTrafficL);
+                    }
+                }
+            }
+        }
+    }
+    private void ChangeTrafficLCol(TrafficLights selectTrafficL)
+    {
+        foreach (var light in trafficLDic)
+        {
+            if (light.Key == selectTrafficL.parent.tag)
+            {
+                light.Value.parent.GetComponent<Collider>().enabled = true;
+                Debug.LogError($"Enabled = {light.Key}");
+            }
+            else
+            {
+                light.Value.parent.GetComponent<Collider>().enabled = false;
+            }
+        }
     }
     public void ReceiveCarInfo(float timeBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
     {
@@ -59,6 +115,12 @@ public class TrafficLight : MonoBehaviour
     }
     void Start()
     {
+        trafficLDic = trafficLights.ToDictionary(keySelector: m => m.parent.tag, elementSelector: m => m);
+        //foreach (var trafficL in trafficLDic)
+        //{
+        //    Debug.LogError($"{trafficL.Key}={trafficL.Value.parent}={trafficL.Value.currentSignal}");
+        //}
+        //.ToDictionary(i => i.parent.tag, i => i);
         collisionDetection = FindObjectOfType<CollisionDetection>();
         if (collisionDetection == null)
         {
@@ -94,119 +156,121 @@ public class TrafficLight : MonoBehaviour
     {
         if (receivedCarInfo)
         {
-            CarTrafficLLogic();
+            SendApiRequest();
+            receivedCarInfo = false;
         }
 
-        if (roadDirChanged)
-        {
-            Debug.LogError("Trigerreddddddddddddddddddddddd");
-            Debug.LogError(roadDirChanged);
-            inputController.ReceiveApiRequest(InputController.apiEvents.UPDATEDIR);
-            foreach (TrafficLights light in trafficLights)
-            {
-                if (_currentRoadDir == InputController.FaceDir.South)
-                {
+        //if (roadDirChanged)
+        //{
+        //    Debug.LogError("Trigerreddddddddddddddddddddddd");
+        //    Debug.LogError(roadDirChanged);
+        //    inputController.ReceiveApiRequest(InputController.apiEvents.UPDATEDIR);
+        //    foreach (TrafficLights light in trafficLights)
+        //    {
+        //        if (_currentRoadDir == InputController.FaceDir.South)
+        //        {
                     
-                    Debug.LogError("11111111111111");
-                    if (_currentFaceDir == InputController.FaceDir.North)
-                    {
-                        Debug.LogError("22222222222222");
-                        if (light.parent.tag == "North TrafficL")
-                        {
-                            Debug.LogError("33333333333333");
-                            light.parent.GetComponent<Collider>().enabled = true;
-                            roadDirChanged = false;
-                        }
-                    }
-                }
-                else if (_currentRoadDir == InputController.FaceDir.East)
-                {
-                    if (_currentFaceDir == InputController.FaceDir.West)
-                    {
-                        if (light.parent.tag == "West TrafficL")
-                        {
-                            light.parent.GetComponent<Collider>().enabled = true;
-                            roadDirChanged = false;
-                        }
-                    }
-                }
-                else if (_currentRoadDir == InputController.FaceDir.West)
-                {
-                    if (_currentFaceDir == InputController.FaceDir.East)
-                    {
-                        if (light.parent.tag == "East TrafficL")
-                        {
-                            light.parent.GetComponent<Collider>().enabled = true;
-                            roadDirChanged = false;
-                        }
-                    }
-                }
-            }
-        }
+        //            Debug.LogError("11111111111111");
+        //            if (_currentFaceDir == InputController.FaceDir.North)
+        //            {
+        //                Debug.LogError("22222222222222");
+        //                if (light.parent.tag == "North TrafficL")
+        //                {
+        //                    Debug.LogError("33333333333333");
+        //                    light.parent.GetComponent<Collider>().enabled = true;
+        //                    //roadDirChanged = false;
+        //                }
+        //            }
+        //        }
+        //        else if (_currentRoadDir == InputController.FaceDir.East)
+        //        {
+        //            if (_currentFaceDir == InputController.FaceDir.West)
+        //            {
+        //                if (light.parent.tag == "West TrafficL")
+        //                {
+        //                    light.parent.GetComponent<Collider>().enabled = true;
+        //                    //roadDirChanged = false;
+        //                }
+        //            }
+        //        }
+        //        else if (_currentRoadDir == InputController.FaceDir.West)
+        //        {
+        //            if (_currentFaceDir == InputController.FaceDir.East)
+        //            {
+        //                if (light.parent.tag == "East TrafficL")
+        //                {
+        //                    light.parent.GetComponent<Collider>().enabled = true;
+        //                    //roadDirChanged = false;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    roadDirChanged = false;
+        //}
     }
-    private void CarTrafficLLogic()
-    {
-        Debug.LogError("Triggered CarTrafficLLogic");
-        Debug.LogError(_currentRoadDir);
-        if (_currentRoadDir == InputController.FaceDir.South)
-        {
-            Debug.Log("Triggered _currentRoadDir");
-            if (_currentFaceDir == InputController.FaceDir.North)
-            {
-                Debug.Log("Triggered _currentFaceDir");
-                _current.GetComponent<Collider>().enabled = true;
+    //private void CarTrafficLLogic()
+    //{
+    //    Debug.LogError("Triggered CarTrafficLLogic");
+    //    Debug.LogError(_currentRoadDir);
+    //    if (_currentRoadDir == InputController.FaceDir.South)
+    //    {
+    //        Debug.Log("Triggered _currentRoadDir");
+    //        if (_currentFaceDir == InputController.FaceDir.North)
+    //        {
+    //            Debug.Log("Triggered _currentFaceDir");
+    //            //_current.GetComponent<Collider>().enabled = true;
 
-                foreach (CollisionDetection collider in _allColliders)
-                {
-                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
-                    {
-                        Debug.Log("Triggered collider.tag");
-                        collider.GetComponent<Collider>().enabled = false;
-                    }
-                }
-                receivedCarInfo = false;
-                SendApiRequest();
-            }
-        }
-        else if (_currentRoadDir == InputController.FaceDir.East)
-        {
-            if (_currentFaceDir == InputController.FaceDir.West)
-            {
-                _current.GetComponent<Collider>().enabled = true;
+    //            foreach (CollisionDetection collider in _allColliders)
+    //            {
+    //                if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+    //                {
+    //                    Debug.Log("Triggered collider.tag");
+    //                    collider.GetComponent<Collider>().enabled = false;
+    //                }
+    //            }
+    //            //receivedCarInfo = false;
+    //            SendApiRequest();
+    //        }
+    //    }
+    //    else if (_currentRoadDir == InputController.FaceDir.East)
+    //    {
+    //        if (_currentFaceDir == InputController.FaceDir.West)
+    //        {
+    //            //_current.GetComponent<Collider>().enabled = true;
 
-                foreach (CollisionDetection collider in _allColliders)
-                {
-                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
-                    {
-                        collider.GetComponent<Collider>().enabled = false;
-                    }
-                }
-                receivedCarInfo = false;
-                SendApiRequest();
-            }
-        }
-        else if (_currentRoadDir == InputController.FaceDir.West)
-        {
-            if (_currentFaceDir == InputController.FaceDir.East)
-            {
-                _current.GetComponent<Collider>().enabled = true;
+    //            foreach (CollisionDetection collider in _allColliders)
+    //            {
+    //                if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+    //                {
+    //                    collider.GetComponent<Collider>().enabled = false;
+    //                }
+    //            }
+    //            //receivedCarInfo = false;
+    //            SendApiRequest();
+    //        }
+    //    }
+    //    else if (_currentRoadDir == InputController.FaceDir.West)
+    //    {
+    //        if (_currentFaceDir == InputController.FaceDir.East)
+    //        {
+    //            //_current.GetComponent<Collider>().enabled = true;
 
-                foreach (CollisionDetection collider in _allColliders)
-                {
-                    if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
-                    {
-                        collider.GetComponent<Collider>().enabled = false;
-                    }
-                }
-                receivedCarInfo = false;
-                SendApiRequest();
-            }
-        }
-        else
-        {
-            //North do nothing no traffic light
-        }
-    }
+    //            foreach (CollisionDetection collider in _allColliders)
+    //            {
+    //                if (collider.tag != _current.tag && !collider.tag.Contains("Road"))
+    //                {
+    //                    collider.GetComponent<Collider>().enabled = false;
+    //                }
+    //            }
+    //            //receivedCarInfo = false;
+    //            SendApiRequest();
+    //        }
+    //    }
+    //    else
+    //    {
+    //        //North do nothing no traffic light
+    //    }
+    //}
     private void SendApiRequest()
     {
         Debug.Log("Triggered SendApiRequest");
@@ -261,7 +325,7 @@ public class TrafficLight : MonoBehaviour
             switch (color)
             {
                 case 0:
-                    if (light.parent.tag == "North")
+                    if (light.parent.tag == "North TrafficL")
                     {
                         SetLightGreen(light);
                     }
@@ -271,7 +335,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 1:
-                    if (light.parent.tag == "North")
+                    if (light.parent.tag == "North TrafficL")
                     {
                         SetLightYellow(light);
                     }
@@ -281,7 +345,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 2:
-                    if (light.parent.tag == "North")
+                    if (light.parent.tag == "North TrafficL")
                     {
                         SetLightRed(light);
                     }
@@ -291,7 +355,7 @@ public class TrafficLight : MonoBehaviour
                     }
                     break;
                 case 3:
-                    if (light.parent.tag == "North")
+                    if (light.parent.tag == "North TrafficL")
                     {
                         SetLightRed(light);
                     }

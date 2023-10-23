@@ -47,23 +47,26 @@ public class CollisionDetection : MonoBehaviour
             switch (this.tag)
             {
                 case "North Road":
-                    trafficLight.roadDirChanged = true;
+                    //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.North;
                     Debug.LogError("North Collision");
                     break;
                 case "East Road":
-                    trafficLight.roadDirChanged = true;
+                    //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.East;
+                    trafficLight.ColliderTriggered(other, this.gameObject, false);
                     Debug.LogError("East Collision");
                     break;
                 case "South Road":
-                    trafficLight.roadDirChanged = true;
+                    //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.South;
+                    trafficLight.ColliderTriggered(other, this.gameObject, false);
                     Debug.LogError("South Collision");
                     break;
                 case "West Road":
-                    trafficLight.roadDirChanged = true;
+                    //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.West;
+                    trafficLight.ColliderTriggered(other, this.gameObject, false);
                     Debug.LogError("West Collision");
                     break;
                 case "Bend Road":
@@ -71,13 +74,13 @@ public class CollisionDetection : MonoBehaviour
                     Debug.LogError("Bend Collision");
                     break;
                 case "North TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    trafficLight.ColliderTriggered(other, this.gameObject, true);
                     break;
                 case "East TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    trafficLight.ColliderTriggered(other, this.gameObject, true);
                     break;
                 case "West TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject);
+                    trafficLight.ColliderTriggered(other, this.gameObject, true);
                     break;
                 case "North StopS":
                     //trafficLight.ColliderTriggered(other, this.gameObject);
