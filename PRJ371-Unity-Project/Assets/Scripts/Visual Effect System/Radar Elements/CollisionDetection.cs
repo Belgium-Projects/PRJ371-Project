@@ -89,18 +89,21 @@ public class CollisionDetection : MonoBehaviour
                 case "East Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.East;
+                    inputController.CarDirectionCalc();
                     trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("East Collision");
                     break;
                 case "South Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.South;
+                    inputController.CarDirectionCalc();
                     trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("South Collision");
                     break;
                 case "West Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.West;
+                    inputController.CarDirectionCalc();
                     trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("West Collision");
                     break;

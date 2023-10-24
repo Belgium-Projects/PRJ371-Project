@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Unity.VisualScripting;
-using UnityEditor.PackageManager.Requests;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 public class InputController : MonoBehaviour
 {
@@ -112,7 +110,7 @@ public class InputController : MonoBehaviour
             Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
         }
     }
-    private void CarDirectionCalc()
+    public void CarDirectionCalc()
     {
         if (carTrans.localEulerAngles.y > 45f && carTrans.localEulerAngles.y <= 135f)
         {
@@ -367,19 +365,19 @@ public class InputController : MonoBehaviour
                 Debug.LogError("North TrafficL");
                 Debug.LogError("Input RoadDir " + currentRoadDir);
                 Debug.LogError("Input CarDir " + currentFaceDir);
-                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             case "East TrafficL":
                 Debug.LogError("East TrafficL");
                 Debug.LogError("Input RoadDir " + currentRoadDir);
                 Debug.LogError("Input CarDir " + currentFaceDir);
-                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             case "West TrafficL":
                 Debug.LogError("West TrafficL");
                 Debug.LogError("Input RoadDir " + currentRoadDir);
                 Debug.LogError("Input CarDir " + currentFaceDir);
-                trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir, currentRoadDir);
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             default:
                 break;
