@@ -32,7 +32,7 @@ public class TrafficLight : MonoBehaviour
     //private CollisionDetection collisionDetection;
     //private string _currentRoadDir;
     private InputController.FaceDir _currentFaceDir;
-    private InputController.FaceDir _currentRoadDir;
+    //private InputController.FaceDir _currentRoadDir;
     private float _timeBetweenObjs;
     private bool receivedCarInfo;
     private GameObject _current;
@@ -40,86 +40,172 @@ public class TrafficLight : MonoBehaviour
     private Dictionary<string, TrafficLights> trafficLDic;
     private TrafficLights selectTrafficL;
     private TrafficLights sendTrafficLReq;
-    private bool updateDir;
-    //private Dictionary<string, Tuple<bool, bool>> dualColDic;
+    //private bool updateDir;
+    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
+    private int calledIndex;
+    private bool coIsRunning;
+    private Tuple<bool, bool> currentColDic;
+    //private Tuple<bool, bool> currentColDic;
     //private bool _sendReq;
     public bool roadDirChanged { get; set; }
     //public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
-    public void ColliderTriggered(Collider other, GameObject current, bool sendReq)
+    public void ColliderTriggered(GameObject current, bool resetCol) //bool sendReq)
     {
-        Debug.Log(current.tag);
-        //_currentFaceDir = inputController.currentFaceDir;
         _current = current;
-        //_sendReq = sendReq;
-        if (sendReq)
+
+        if (resetCol)
         {
-            inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
-            //_sendReq = false;
+            if (calledIndex == 0)
+            {
+                _dualColDic[current.tag] = new Tuple<bool, bool>(false, false);
+
+                if (current.tag.Contains("South"))
+                {
+                    if (_currentFaceDir == InputController.FaceDir.North)
+                    {
+                        if (trafficLDic.TryGetValue("North TrafficL", out selectTrafficL))
+                        {
+                            ChangeTrafficLCol(selectTrafficL);
+                        }
+                    }
+                }
+                else if (current.tag.Contains("East"))
+                {
+                    if (_currentFaceDir == InputController.FaceDir.West)
+                    {
+                        if (trafficLDic.TryGetValue("West TrafficL", out selectTrafficL))
+                        {
+                            ChangeTrafficLCol(selectTrafficL);
+                        }
+                    }
+                }
+                else if (current.tag.Contains("West"))
+                {
+                    if (_currentFaceDir == InputController.FaceDir.East)
+                    {
+                        if (trafficLDic.TryGetValue("East TrafficL", out selectTrafficL))
+                        {
+                            ChangeTrafficLCol(selectTrafficL);
+                        }
+                    }
+                }
+            }
         }
         else
         {
-            //updateDir = true;
-            inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, current);
-            if (current.tag.Contains("South"))
+            inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+            calledIndex++;
+
+            if (calledIndex == 1)
             {
-                if (_currentFaceDir == InputController.FaceDir.North)
-                {
-                    if (trafficLDic.TryGetValue("North TrafficL", out selectTrafficL))
-                    {
-                        ChangeTrafficLCol(selectTrafficL);
-                    }
-                }
+                _dualColDic[current.tag] = new Tuple<bool, bool>(true, false);
             }
-            else if (current.tag.Contains("East"))
+            else if (calledIndex == 2)
             {
-                if (_currentFaceDir == InputController.FaceDir.West)
-                {
-                    if (trafficLDic.TryGetValue("West TrafficL", out selectTrafficL))
-                    {
-                        ChangeTrafficLCol(selectTrafficL);
-                    }
-                }
-            }
-            else if (current.tag.Contains("West"))
-            {
-                if (_currentFaceDir == InputController.FaceDir.East)
-                {
-                    if (trafficLDic.TryGetValue("East TrafficL", out selectTrafficL))
-                    {
-                        ChangeTrafficLCol(selectTrafficL);
-                    }
-                }
+                _dualColDic[current.tag] = new Tuple<bool, bool>(true, true);
+                calledIndex = 0;
             }
         }
+
+
+
+
+        //Debug.Log(current.tag);
+        ////_currentFaceDir = inputController.currentFaceDir;
+        //_current = current;
+        ////_sendReq = sendReq;
+        //if (sendReq)
+        //{
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+        //    //_sendReq = false;
+        //}
+        //else
+        //{
+        //    //updateDir = true;
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, current);
+        //    if (current.tag.Contains("South"))
+        //    {
+        //        if (_currentFaceDir == InputController.FaceDir.North)
+        //        {
+        //            if (trafficLDic.TryGetValue("North TrafficL", out selectTrafficL))
+        //            {
+        //                ChangeTrafficLCol(selectTrafficL);
+        //            }
+        //        }
+        //    }
+        //    else if (current.tag.Contains("East"))
+        //    {
+        //        if (_currentFaceDir == InputController.FaceDir.West)
+        //        {
+        //            if (trafficLDic.TryGetValue("West TrafficL", out selectTrafficL))
+        //            {
+        //                ChangeTrafficLCol(selectTrafficL);
+        //            }
+        //        }
+        //    }
+        //    else if (current.tag.Contains("West"))
+        //    {
+        //        if (_currentFaceDir == InputController.FaceDir.East)
+        //        {
+        //            if (trafficLDic.TryGetValue("East TrafficL", out selectTrafficL))
+        //            {
+        //                ChangeTrafficLCol(selectTrafficL);
+        //            }
+        //        }
+        //    }
+        //}
     }
     private void ChangeTrafficLCol(TrafficLights selectTrafficL)
     {
+        selectTrafficL.parent.GetComponents<Collider>()[0].enabled = true;
+        selectTrafficL.parent.GetComponents<Collider>()[1].enabled = true;
+
         foreach (var light in trafficLDic)
         {
-            if (light.Key == selectTrafficL.parent.tag)
+            if (!selectTrafficL.parent.CompareTag(light.Key))
             {
-                light.Value.parent.GetComponent<Collider>().enabled = true;
-                Debug.LogError($"Enabled = {light.Key}");
-            }
-            else
-            {
-                light.Value.parent.GetComponent<Collider>().enabled = false;
+                light.Value.parent.GetComponents<Collider>()[0].enabled = false;
+                light.Value.parent.GetComponents<Collider>()[1].enabled = false;
             }
         }
+
+
+
+
+        //foreach (var light in trafficLDic)
+        //{
+        //    if (light.Key == selectTrafficL.parent.tag)
+        //    {
+        //        light.Value.parent.GetComponent<Collider>().enabled = true;
+        //        Debug.LogError($"Enabled = {light.Key}");
+        //    }
+        //    else
+        //    {
+        //        light.Value.parent.GetComponent<Collider>().enabled = false;
+        //    }
+        //}
     }
     public void ReceiveCarInfo(float timeBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
     {
         _timeBetweenObjs = timeBetweenObjs;
         _currentFaceDir = currentFaceDir;
-        _currentRoadDir = currentRoadDir;
 
         receivedCarInfo = true;
+
+
+
+
+        //_currentRoadDir = currentRoadDir;
     }
-    public void UpdateCarInfo(InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
-    {
-        _currentFaceDir = currentFaceDir;
-        _currentRoadDir = currentRoadDir;
-    }
+    //public void UpdateCarInfo(InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir)
+    //{
+    //    _currentFaceDir = currentFaceDir;
+
+
+
+
+    //    //_currentRoadDir = currentRoadDir;
+    //}
     public string UpdateUI()
     {
         string result = "N/A";
@@ -137,7 +223,21 @@ public class TrafficLight : MonoBehaviour
     }
     void Start()
     {
+        inputController = FindObjectOfType<InputController>();
+
+        calledIndex = 0;
+        coIsRunning = false;
+        _dualColDic = inputController.dualColDic;
+
         trafficLDic = trafficLights.ToDictionary(keySelector: m => m.parent.tag, elementSelector: m => m);
+
+        UpdateLights(_colorIndex);
+
+
+
+
+
+
         //foreach (var trafficL in trafficLDic)
         //{
         //    Debug.LogError($"{trafficL.Key}={trafficL.Value.parent}={trafficL.Value.currentSignal}");
@@ -149,11 +249,11 @@ public class TrafficLight : MonoBehaviour
         //    Debug.LogError("No collisionDetection script in the scene");
         //}
 
-        inputController = FindObjectOfType<InputController>();
-        if (inputController == null)
-        {
-            Debug.LogError("No inputController script in the scene");
-        }
+
+        //if (inputController == null)
+        //{
+        //    Debug.LogError("No inputController script in the scene");
+        //}
         //Initialize all the traffic lights
 
         //_allColliders = collisionDetection.RetreiveAllColliders();
@@ -183,7 +283,6 @@ public class TrafficLight : MonoBehaviour
         //{
         //    Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
         //}
-        UpdateLights(_colorIndex);
     }
 
     void Update()
@@ -204,7 +303,6 @@ public class TrafficLight : MonoBehaviour
     {
         if (receivedCarInfo)
         {
-            Debug.LogError("Entered Received Update");
             SendApiRequest();
             receivedCarInfo = false;
         }
@@ -328,7 +426,93 @@ public class TrafficLight : MonoBehaviour
     //}
     private void SendApiRequest()
     {
-        Debug.Log("Triggered SendApiRequest");
+        Debug.LogError("11111");
+        if (_dualColDic.TryGetValue(_current.tag, out currentColDic))
+        {
+            if (trafficLDic.TryGetValue(_current.tag, out sendTrafficLReq))
+            {
+                Debug.LogError("22222");
+                if (sendTrafficLReq.currentSignal.Equals(currentColor.Green))
+                {
+                    Debug.LogError("33333");
+                    if (_timeBetweenObjs < (13 - _timer) && (13 - _timer) >= 0)
+                    {
+                        Debug.LogError("44444");
+                        inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                    }
+                    else
+                    {
+                        Debug.LogError("55555");
+                        if (currentColDic.Equals(new Tuple<bool, bool>(true, false)))
+                        {
+                            Debug.LogError("66666");
+                            inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+                        }
+                        else if (currentColDic.Equals(new Tuple<bool, bool>(true, true)))
+                        {
+                            Debug.LogError("77777");
+                            inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+                        }
+                    }
+                }
+                else if (sendTrafficLReq.currentSignal.Equals(currentColor.Yellow))
+                {
+                    Debug.LogError("33333");
+                    if (currentColDic.Equals(new Tuple<bool, bool>(true, false)))
+                    {
+                        Debug.LogError("44444");
+                        inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+                    }
+                    else if (currentColDic.Equals(new Tuple<bool, bool>(true, true)))
+                    {
+                        Debug.LogError("55555");
+                        inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+                    }
+                }
+                else if (sendTrafficLReq.currentSignal.Equals(currentColor.Red))
+                {
+                    Debug.LogError("33333");
+                    if (currentColDic.Equals(new Tuple<bool, bool>(true, false)))
+                    {
+                        Debug.LogError("44444");
+                        inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+                    }
+                    else if (currentColDic.Equals(new Tuple<bool, bool>(true, true)))
+                    {
+                        Debug.LogError("55555");
+                        inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+                    }
+                }
+            }
+        }
+
+        StartCoroutine(WaitForGreenL());
+
+
+
+        //if (trafficLDic.TryGetValue(_current.tag, out sendTrafficLReq))
+        //{
+        //    if (sendTrafficLReq.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
+        //    {
+        //        inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //    }
+        //    else if (sendTrafficLReq.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
+        //    {
+        //        inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //    }
+        //    else if (sendTrafficLReq.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
+        //    {
+        //        inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //    }
+        //    else
+        //    {
+        //        inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+        //    }
+        //}
+
+
+
+
         //foreach (TrafficLights light in trafficLights)
         //{
         //    Debug.LogError("Run For Loop");
@@ -354,24 +538,27 @@ public class TrafficLight : MonoBehaviour
         //        }
         //    }
         //}
-        if (trafficLDic.TryGetValue(_current.tag, out sendTrafficLReq))
+    }
+    IEnumerator WaitForGreenL()
+    {
+        if (coIsRunning)
         {
-            if (sendTrafficLReq.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
+            yield break;
+        }
+        else
+        {
+            coIsRunning = true;
+        }
+
+        while (coIsRunning)
+        {
+            if (sendTrafficLReq.currentSignal.Equals(currentColor.Green))
             {
                 inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                coIsRunning = false;
+                yield break;
             }
-            else if (sendTrafficLReq.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
-            {
-                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-            }
-            else if (sendTrafficLReq.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
-            {
-                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-            }
-            else
-            {
-                inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
-            }
+            yield return null;
         }
     }
     private void TimerLogic()
@@ -442,10 +629,15 @@ public class TrafficLight : MonoBehaviour
                     SetLightRed(light);
                     break;
             }
-            if (light.currentSignal == currentColor.Green && inputController.apiRequest == InputController.apiEvents.STOP && !receivedCarInfo)
-            {
-                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-            }
+
+
+
+
+
+            //if (light.currentSignal == currentColor.Green && inputController.apiRequest == InputController.apiEvents.STOP && !receivedCarInfo)
+            //{
+            //    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            //}
         }
     }
     private void SetLightRed(TrafficLights light)
@@ -472,21 +664,25 @@ public class TrafficLight : MonoBehaviour
         light.red.SetActive(false);
         light.green.SetActive(false);
     }
-    public string GetApiRequest()
-    {
-        // Signal can be set based on your actual implementation
-        // For demonstration, it's set to "Red", "Orange", or "Green"
-        //switch (currentSignal)
-        //{
-        //    case "Green":
-        //        return "Go";
-        //    case "Yellow":
-        //        return "SlowDown";
-        //    case "Red":
-        //        return "Stop";
-        //    default:
-        //        return "";
-        //}
-        return "None";
-    }
+
+
+
+
+    //public string GetApiRequest()
+    //{
+    //    // Signal can be set based on your actual implementation
+    //    // For demonstration, it's set to "Red", "Orange", or "Green"
+    //    //switch (currentSignal)
+    //    //{
+    //    //    case "Green":
+    //    //        return "Go";
+    //    //    case "Yellow":
+    //    //        return "SlowDown";
+    //    //    case "Red":
+    //    //        return "Stop";
+    //    //    default:
+    //    //        return "";
+    //    //}
+    //    return "None";
+    //}
 }

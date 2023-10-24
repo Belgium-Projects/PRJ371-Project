@@ -17,21 +17,27 @@ public class InfoGUIController : MonoBehaviour
     private float _speedFiller = 0f;
     private int _speed = 0;
     private string _event = "Stop";
+    private string _currentApiEvent;
     void Start()
     {
+        inputController = FindObjectOfType<InputController>();
         if (speedHolder == null || eventHolder == null)
         {
             Debug.LogError("The speed &| event holders is not added");
         }
 
-        inputController = FindObjectOfType<InputController>();
-        if (inputController == null)
-        {
-            Debug.LogError("No inputController script in the scene");
-        }
         speedBarHolder.fillAmount = _speedFiller;
         speedHolder.text = _speed.ToString();
         eventHolder.text = _event;
+
+
+
+
+
+        //if (inputController == null)
+        //{
+        //    Debug.LogError("No inputController script in the scene");
+        //}
     }
     void Update()
     {
@@ -43,6 +49,6 @@ public class InfoGUIController : MonoBehaviour
     }
     private void CallUIinfo()
     {
-        inputController.apiRequest.ToString();
+        _currentApiEvent = inputController.apiRequest.ToString();
     }
 }

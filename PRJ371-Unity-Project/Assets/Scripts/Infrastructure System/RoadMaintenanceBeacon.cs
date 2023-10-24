@@ -80,11 +80,21 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     }
     private void Start()
     {
+        inputController = FindObjectOfType<InputController>();
+
+
+
+
+        //beaconCollider = beaconObj.GetComponent<SphereCollider>();
+        //if (beaconCollider == null)
+        //{
+        //    Debug.LogError("No sphere collider added to the game object");
+        //}
+
         //Get the beacon sphere collider and Arduino script
-        beaconCollider = beaconObj.GetComponent<SphereCollider>();
         //carSimulator = gameObject.GetComponent<ArduinoCarSimulator>();
         //inputController = carObj.GetComponent<InputController>();
-        inputController = FindObjectOfType<InputController>();
+
         //Debug.Log(inputController);
         //collisionDetection = FindObjectOfType<CollisionDetection>();
 
@@ -93,14 +103,6 @@ public class RoadMaintenanceBeacon : MonoBehaviour
         //    Debug.LogError("No collisionDetection script in the scene");
         //}
         //Check if objects exist in the scene
-        if (beaconCollider == null )
-        {
-            Debug.LogError("No sphere collider added to the game object");
-        }
-        if (inputController == null)
-        {
-            Debug.LogError("No inputController script in the scene");
-        }
 
         //_allColliders = collisionDetection.RetreiveAllColliders();
     }

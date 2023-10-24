@@ -272,7 +272,7 @@ public class InputController : MonoBehaviour
                 if (_infrastructureObj.tag.Contains("Road"))
                 {
                     MoveAccelerate(acceleration, steering, braking);
-                    trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
+                    //trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
                     ReceiveApiRequest(apiEvents.GO);
                 }
                 else if (_infrastructureObj.tag.Contains("Beacon"))
@@ -459,7 +459,7 @@ public class InputController : MonoBehaviour
             else if ((torqueNow > 0.1 || torqueNow < -0.1) && braking <= 0)
             {
                 _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 0.3f * _maxBrakingTorque;
+                _wheelColliders[i].brakeTorque = 0.6f * _maxBrakingTorque;
                 //_wheelColliders[i].motorTorque = thrustTorque;
                 Debug.Log("Slowing Down & Switch over to Stop");
                 //ReceiveApiRequest(apiEvents.STOP);
@@ -543,7 +543,7 @@ public class InputController : MonoBehaviour
             if (speed >= minSpeed)
             {
                 _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 0.7f * _maxBrakingTorque;
+                _wheelColliders[i].brakeTorque = 0.6f * _maxBrakingTorque;
                 //_wheelColliders[i].motorTorque = thrustTorque;
                 Debug.Log("Slowing Down");
             }

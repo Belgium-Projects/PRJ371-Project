@@ -20,25 +20,11 @@ public class CollisionDetection : MonoBehaviour
         roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
         trafficLight = FindObjectOfType<TrafficLight>();
         stopSign = FindObjectOfType<StopSign>();
-        //InputController = FindObjectOfType<InputController>();
 
-        if (inputController == null)
-        {
-            Debug.LogError("No inputController script in the scene");
-        }
-        else if (roadMaintenanceBeacon == null)
-        {
-            Debug.LogError("No roadMaintenanceBeacon script in the scene");
-        }
-        else if (trafficLight == null)
-        {
-            Debug.LogError("No trafficLight script in the scene");
-        }
-        else if (stopSign == null)
-        {
-            Debug.LogError("No stopSign script in the scene");
-        }
         RetreiveAllColliders();
+
+
+
         //_allColliders = RetreiveAllColliders();
         //dualColDic = new Dictionary<string, Tuple<bool, bool>>();
         //PopulateDic();
@@ -103,19 +89,19 @@ public class CollisionDetection : MonoBehaviour
                 case "East Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.East;
-                    trafficLight.ColliderTriggered(other, this.gameObject, false);
+                    trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("East Collision");
                     break;
                 case "South Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.South;
-                    trafficLight.ColliderTriggered(other, this.gameObject, false);
+                    trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("South Collision");
                     break;
                 case "West Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.West;
-                    trafficLight.ColliderTriggered(other, this.gameObject, false);
+                    trafficLight.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("West Collision");
                     break;
                 case "Bend Road":
@@ -125,13 +111,13 @@ public class CollisionDetection : MonoBehaviour
                     Debug.LogError("Bend Collision");
                     break;
                 case "North TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject, true);
+                    trafficLight.ColliderTriggered(this.gameObject, false);
                     break;
                 case "East TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject, true);
+                    trafficLight.ColliderTriggered(this.gameObject, false);
                     break;
                 case "West TrafficL":
-                    trafficLight.ColliderTriggered(other, this.gameObject, true);
+                    trafficLight.ColliderTriggered(this.gameObject, false);
                     break;
                 case "North StopS":
                     //trafficLight.ColliderTriggered(other, this.gameObject);
