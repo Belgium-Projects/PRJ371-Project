@@ -133,6 +133,20 @@ public class InputController : MonoBehaviour
         Debug.Log(currentFaceDir);
         //Debug.Log(carTrans.localEulerAngles.y);
     }
+    public void ColliderTriggered(GameObject current, bool enteredCol)
+    {
+        if (current.tag.Contains("Bend"))
+        {
+            if (enteredCol)
+            {
+                ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+            }
+            else
+            {
+                ReceiveApiRequest(InputController.apiEvents.GO);
+            }
+        }
+    }
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -268,6 +282,12 @@ public class InputController : MonoBehaviour
                     roadMaintenanceBeacon.UpdateCarInfo(result.carDistance, result.beaconDistanceLeft, result.pastBeacon);
                     ReceiveApiRequest(apiEvents.WARNING);
                 }
+                //else if (_infrastructureObj.tag.Contains("StopS"))
+                //{
+                //    MoveAccelerate(acceleration, steering, braking);
+                //    stopSign.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
+                //    ReceiveApiRequest(apiEvents.GO);
+                //}
                 // Incrementally bring the car to a stop
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;
@@ -523,7 +543,7 @@ public class InputController : MonoBehaviour
             if (speed >= minSpeed)
             {
                 _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 0.3f * _maxBrakingTorque;
+                _wheelColliders[i].brakeTorque = 0.7f * _maxBrakingTorque;
                 //_wheelColliders[i].motorTorque = thrustTorque;
                 Debug.Log("Slowing Down");
             }

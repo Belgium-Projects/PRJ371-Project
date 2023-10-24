@@ -96,6 +96,8 @@ public class CollisionDetection : MonoBehaviour
                 case "North Road":
                     //trafficLight.roadDirChanged = true;
                     inputController.currentRoadDir = InputController.FaceDir.North;
+                    stopSign.ColliderTriggered(this.gameObject, true);
+                    //inputController.ReceiveApiRequest(InputController.apiEvents.GO);
                     Debug.LogError("North Collision");
                     break;
                 case "East Road":
@@ -118,6 +120,8 @@ public class CollisionDetection : MonoBehaviour
                     break;
                 case "Bend Road":
                     inputController.currentRoadDir = InputController.FaceDir.Bend;
+                    //inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+                    inputController.ColliderTriggered(this.gameObject, true);
                     Debug.LogError("Bend Collision");
                     break;
                 case "North TrafficL":
@@ -131,7 +135,7 @@ public class CollisionDetection : MonoBehaviour
                     break;
                 case "North StopS":
                     //trafficLight.ColliderTriggered(other, this.gameObject);
-                    stopSign.ColliderTriggered(this.gameObject);
+                    stopSign.ColliderTriggered(this.gameObject, false);
                     break;
                 case "Beacon":
                     roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, true);
@@ -149,9 +153,13 @@ public class CollisionDetection : MonoBehaviour
     {
         if (other.CompareTag("Car"))
         {
-            if (this.tag == "Beacon")
+            if (this.tag.Contains("Beacon"))
             {
                 roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, false);
+            }
+            else if (this.tag.Contains("Bend"))
+            {
+                inputController.ColliderTriggered(this.gameObject, false);
             }
         }
     }
