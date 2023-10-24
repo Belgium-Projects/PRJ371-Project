@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CollisionDetection : MonoBehaviour
@@ -8,13 +10,17 @@ public class CollisionDetection : MonoBehaviour
     private InputController inputController;
     private RoadMaintenanceBeacon roadMaintenanceBeacon;
     private TrafficLight trafficLight;
-    private InputController InputController;
+    private StopSign stopSign;
+    private Dictionary<string, Tuple<bool ,bool>> dualColDic;
+    CollisionDetection[] _allColliders;
+    //private InputController InputController;
     void Start()
     {
         inputController = FindObjectOfType<InputController>();
         roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
         trafficLight = FindObjectOfType<TrafficLight>();
-        InputController = FindObjectOfType<InputController>();
+        stopSign = FindObjectOfType<StopSign>();
+        //InputController = FindObjectOfType<InputController>();
 
         if (inputController == null)
         {
@@ -28,8 +34,49 @@ public class CollisionDetection : MonoBehaviour
         {
             Debug.LogError("No trafficLight script in the scene");
         }
+        else if (stopSign == null)
+        {
+            Debug.LogError("No stopSign script in the scene");
+        }
         RetreiveAllColliders();
+        //_allColliders = RetreiveAllColliders();
+        //dualColDic = new Dictionary<string, Tuple<bool, bool>>();
+        //PopulateDic();
+        //foreach (var collider in dualColDic)
+        //{
+        //    Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
+        //}
     }
+    //private void PopulateDic()
+    //{
+    //    //_allColliders = RetreiveAllColliders();
+    //    //dualColDic = new Dictionary<string, Tuple<bool, bool>>();
+    //    //foreach (var collider in _allColliders)
+    //    //{
+    //    //    Debug.LogError($"Key: {collider.tag}");
+    //    //}
+    //    ////foreach (CollisionDetection collision in _allColliders)
+    //    ////{
+    //    ////    if (!collision.tag.Contains("Road") && !collision.tag.Contains("Beacon"))
+    //    ////    {
+    //    ////        Debug.LogError(dualColDic);
+    //    ////        if (!dualColDic.ContainsKey(collision.tag))
+    //    ////        {
+    //    ////            Debug.LogError("Entered Dic Col");
+    //    ////            dualColDic.Add(collision.tag, Tuple.Create(false, false));
+    //    ////        }
+    //    ////        else
+    //    ////        {
+    //    ////            Debug.LogError("Exited Dic Col");
+    //    ////            //return;
+    //    ////        }
+    //    ////    }
+    //    ////}
+    //    //foreach (var collider in dualColDic)
+    //    //{
+    //    //    Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
+    //    //}
+    //}
     public CollisionDetection[] RetreiveAllColliders()
     {
         CollisionDetection[] allColliders = FindObjectsOfType(typeof(CollisionDetection)) as CollisionDetection[];
@@ -38,7 +85,7 @@ public class CollisionDetection : MonoBehaviour
         //{
         //    Debug.Log(item.gameObject.name);
         //}
-        return allColliders;
+        return allColliders.Distinct().ToArray();
     }
     private void OnTriggerEnter(Collider other)
     {
@@ -84,6 +131,7 @@ public class CollisionDetection : MonoBehaviour
                     break;
                 case "North StopS":
                     //trafficLight.ColliderTriggered(other, this.gameObject);
+                    stopSign.ColliderTriggered(this.gameObject);
                     break;
                 case "Beacon":
                     roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, true);

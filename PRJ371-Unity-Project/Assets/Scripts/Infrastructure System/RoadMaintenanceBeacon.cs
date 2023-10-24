@@ -12,13 +12,13 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     private SphereCollider beaconCollider;
     //private ArduinoCarSimulator carSimulator;
     private InputController inputController;
-    private CollisionDetection collisionDetection;
+    //private CollisionDetection collisionDetection;
     private InputController.FaceDir _currentFaceDir;
     private InputController.FaceDir _currentRoadDir;
     private float _distanceBetweenObjs;
     private bool receivedCarInfo;
     private GameObject _current;
-    CollisionDetection[] _allColliders;
+    //CollisionDetection[] _allColliders;
     private bool updateDist;
     private float _beaconDistanceLeft;
     private bool _enteredCol;
@@ -86,12 +86,12 @@ public class RoadMaintenanceBeacon : MonoBehaviour
         //inputController = carObj.GetComponent<InputController>();
         inputController = FindObjectOfType<InputController>();
         //Debug.Log(inputController);
-        collisionDetection = FindObjectOfType<CollisionDetection>();
+        //collisionDetection = FindObjectOfType<CollisionDetection>();
 
-        if (collisionDetection == null)
-        {
-            Debug.LogError("No collisionDetection script in the scene");
-        }
+        //if (collisionDetection == null)
+        //{
+        //    Debug.LogError("No collisionDetection script in the scene");
+        //}
         //Check if objects exist in the scene
         if (beaconCollider == null )
         {
@@ -102,7 +102,7 @@ public class RoadMaintenanceBeacon : MonoBehaviour
             Debug.LogError("No inputController script in the scene");
         }
 
-        _allColliders = collisionDetection.RetreiveAllColliders();
+        //_allColliders = collisionDetection.RetreiveAllColliders();
     }
     private void LateUpdate()
     {

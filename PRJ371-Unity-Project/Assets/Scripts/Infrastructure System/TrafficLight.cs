@@ -29,18 +29,19 @@ public class TrafficLight : MonoBehaviour
     private float _timer = 0f;
     private int _colorIndex = 0;
     private InputController inputController;
-    private CollisionDetection collisionDetection;
+    //private CollisionDetection collisionDetection;
     //private string _currentRoadDir;
     private InputController.FaceDir _currentFaceDir;
     private InputController.FaceDir _currentRoadDir;
     private float _timeBetweenObjs;
     private bool receivedCarInfo;
     private GameObject _current;
-    CollisionDetection[] _allColliders;
+    //CollisionDetection[] _allColliders;
     private Dictionary<string, TrafficLights> trafficLDic;
     private TrafficLights selectTrafficL;
     private TrafficLights sendTrafficLReq;
     private bool updateDir;
+    //private Dictionary<string, Tuple<bool, bool>> dualColDic;
     //private bool _sendReq;
     public bool roadDirChanged { get; set; }
     //public string currentRoadDir { get {return _currentRoadDir;} set { _currentRoadDir = value;}}
@@ -142,11 +143,11 @@ public class TrafficLight : MonoBehaviour
         //    Debug.LogError($"{trafficL.Key}={trafficL.Value.parent}={trafficL.Value.currentSignal}");
         //}
         //.ToDictionary(i => i.parent.tag, i => i);
-        collisionDetection = FindObjectOfType<CollisionDetection>();
-        if (collisionDetection == null)
-        {
-            Debug.LogError("No collisionDetection script in the scene");
-        }
+        //collisionDetection = FindObjectOfType<CollisionDetection>();
+        //if (collisionDetection == null)
+        //{
+        //    Debug.LogError("No collisionDetection script in the scene");
+        //}
 
         inputController = FindObjectOfType<InputController>();
         if (inputController == null)
@@ -155,7 +156,33 @@ public class TrafficLight : MonoBehaviour
         }
         //Initialize all the traffic lights
 
-        _allColliders = collisionDetection.RetreiveAllColliders();
+        //_allColliders = collisionDetection.RetreiveAllColliders();
+        //foreach (var collider in _allColliders)
+        //{
+        //    Debug.LogError($"Key: {collider.tag}");
+        //}
+        //dualColDic = new Dictionary<string, Tuple<bool, bool>>();
+        //foreach (CollisionDetection collision in _allColliders)
+        //{
+        //    if (!collision.tag.Contains("Road") && !collision.tag.Contains("Beacon"))
+        //    {
+        //        Debug.LogError(dualColDic);
+        //        if (!dualColDic.ContainsKey(collision.tag))
+        //        {
+        //            Debug.LogError("Entered Dic Col");
+        //            dualColDic.Add(collision.tag, Tuple.Create(false, false));
+        //        }
+        //        else
+        //        {
+        //            Debug.LogError("Exited Dic Col");
+        //            //return;
+        //        }
+        //    }
+        //}
+        //foreach (var collider in dualColDic)
+        //{
+        //    Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
+        //}
         UpdateLights(_colorIndex);
     }
 

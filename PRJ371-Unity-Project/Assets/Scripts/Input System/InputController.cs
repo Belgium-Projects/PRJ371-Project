@@ -48,6 +48,11 @@ public class InputController : MonoBehaviour
     private float timeBetweenObjs;
     private bool initialDistance;
     private bool _pastBeacon;
+    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
+    public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
+    private CollisionDetection[] _allColliders;
+    private CollisionDetection collisionDetection;
+    private StopSign stopSign;
     public FaceDir currentFaceDir { get {return _currentFaceDir;} set {_currentFaceDir = value;}}
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
     //Arduino events enum
@@ -80,6 +85,32 @@ public class InputController : MonoBehaviour
         apiRequest = request;
         _infrastructureObj = infrastructureObj;
         Debug.Log("2 ~ Triggered " + apiRequest + " Event!");
+    }
+    private void PopulateInfColDic()
+    {
+        _allColliders = collisionDetection.RetreiveAllColliders();
+        dualColDic = new Dictionary<string, Tuple<bool, bool>>();
+        foreach (CollisionDetection collision in _allColliders)
+        {
+            if (!collision.tag.Contains("Road") && !collision.tag.Contains("Beacon"))
+            {
+                Debug.LogError(dualColDic);
+                if (!dualColDic.ContainsKey(collision.tag))
+                {
+                    Debug.LogError("Entered Dic Col");
+                    dualColDic.Add(collision.tag, Tuple.Create(false, false));
+                }
+                else
+                {
+                    Debug.LogError("Exited Dic Col");
+                    //return;
+                }
+            }
+        }
+        foreach (var collider in dualColDic)
+        {
+            Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
+        }
     }
     private void CarDirectionCalc()
     {
@@ -124,7 +155,17 @@ public class InputController : MonoBehaviour
         {
             Debug.LogError("No roadMaintenanceBeacon script in the scene");
         }
-
+        collisionDetection = FindObjectOfType<CollisionDetection>();
+        if (collisionDetection == null)
+        {
+            Debug.LogError("No collisionDetection script in the scene");
+        }
+        stopSign = FindObjectOfType<StopSign>();
+        if (stopSign == null)
+        {
+            Debug.LogError("No stopSign script in the scene");
+        }
+        PopulateInfColDic();
         ReceiveApiRequest(apiEvents.GO);
         carTrans = car.GetComponent<Transform>();
     }
@@ -300,6 +341,7 @@ public class InputController : MonoBehaviour
                 break;
             case "North StopS":
                 //trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir);
+                stopSign.ReceiveCarInfo(_currentFaceDir, _currentRoadDir);
                 break;
             case "North TrafficL":
                 Debug.LogError("North TrafficL");
