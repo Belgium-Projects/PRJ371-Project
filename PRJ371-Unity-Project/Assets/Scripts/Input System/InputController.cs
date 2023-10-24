@@ -207,6 +207,7 @@ public class InputController : MonoBehaviour
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
                 break;
             case apiEvents.SENDINFO:
+                MoveAccelerate(acceleration, steering, braking);
                 TimeDistanceCalc(_infrastructureObj);
                 // Incrementally bring the car to a stop
                 //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);

@@ -39,6 +39,7 @@ public class TrafficLight : MonoBehaviour
     CollisionDetection[] _allColliders;
     private Dictionary<string, TrafficLights> trafficLDic;
     private TrafficLights selectTrafficL;
+    private TrafficLights sendTrafficLReq;
     private bool updateDir;
     //private bool _sendReq;
     public bool roadDirChanged { get; set; }
@@ -176,6 +177,7 @@ public class TrafficLight : MonoBehaviour
     {
         if (receivedCarInfo)
         {
+            Debug.LogError("Entered Received Update");
             SendApiRequest();
             receivedCarInfo = false;
         }
@@ -300,29 +302,48 @@ public class TrafficLight : MonoBehaviour
     private void SendApiRequest()
     {
         Debug.Log("Triggered SendApiRequest");
-        foreach (TrafficLights light in trafficLights)
+        //foreach (TrafficLights light in trafficLights)
+        //{
+        //    Debug.LogError("Run For Loop");
+        //    if (_current.tag == light.parent.tag)
+        //    {
+        //        Debug.LogError(_current.tag);
+        //        Debug.LogError(light.parent.tag);
+        //        if (light.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
+        //        {
+        //            inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //        }
+        //        else if (light.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
+        //        {
+        //            inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //        }
+        //        else if (light.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
+        //        {
+        //            inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //        }
+        //        else
+        //        {
+        //            inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
+        //        }
+        //    }
+        //}
+        if (trafficLDic.TryGetValue(_current.tag, out sendTrafficLReq))
         {
-            Debug.LogError("Run For Loop");
-            if (_current.tag == light.parent.tag)
+            if (sendTrafficLReq.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
             {
-                Debug.LogError(_current.tag);
-                Debug.LogError(light.parent.tag);
-                if (light.currentSignal == currentColor.Green && _timeBetweenObjs < (13 - _timer))
-                {
-                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-                }
-                else if (light.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
-                {
-                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-                }
-                else if (light.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
-                {
-                    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-                }
-                else
-                {
-                    inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
-                }
+                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            }
+            else if (sendTrafficLReq.currentSignal == currentColor.Yellow && _timeBetweenObjs < (3 - _timer))
+            {
+                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            }
+            else if (sendTrafficLReq.currentSignal == currentColor.Red && _timeBetweenObjs > (10 - _timer))
+            {
+                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            }
+            else
+            {
+                inputController.ReceiveApiRequest(InputController.apiEvents.STOP);
             }
         }
     }
