@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RoadMaintenanceBeacon : MonoBehaviour
@@ -9,72 +11,114 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     //[SerializeField] private GameObject carObj;
 
     //Global variables
-    private SphereCollider beaconCollider;
+    //private SphereCollider beaconCollider;
     //private ArduinoCarSimulator carSimulator;
     private InputController inputController;
     //private CollisionDetection collisionDetection;
-    private InputController.FaceDir _currentFaceDir;
-    private InputController.FaceDir _currentRoadDir;
-    private float _distanceBetweenObjs;
+    //private InputController.FaceDir _currentFaceDir;
+    //private InputController.FaceDir _currentRoadDir;
+    //private float _distanceBetweenObjs;
     private bool receivedCarInfo;
     private GameObject _current;
     //CollisionDetection[] _allColliders;
-    private bool updateDist;
-    private float _beaconDistanceLeft;
-    private bool _enteredCol;
-    private bool _pastBeacon;
-    public void ColliderTriggered(Collider other, GameObject current, bool enteredCol)
+    //private bool updateDist;
+    //private float _beaconDistanceLeft;
+    //private bool _enteredCol;
+    //private bool _pastBeacon;
+
+
+    private int calledIndex;
+    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
+    private Tuple<bool, bool> currentColDic;
+    public void ColliderTriggered(GameObject current, bool resetCol) //bool enteredCol)
     {
         _current = current;
-        _enteredCol = enteredCol;
 
-        if (enteredCol)
+        if (resetCol)
+        {
+            Debug.LogError("-1-1-1-1-1");
+            if (calledIndex == 0)
+            {
+                Debug.LogError("-2-2-2-2-2");
+                _dualColDic[current.tag] = new Tuple<bool, bool>(false, false);
+                Debug.LogError("33333");
+                inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            }
+        }
+        else
         {
             inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
-            updateDist = true;
+            calledIndex++;
+
+            if (calledIndex == 1)
+            {
+                _dualColDic[current.tag] = new Tuple<bool, bool>(true, false);
+            }
+            else if (calledIndex == 2)
+            {
+                _dualColDic[current.tag] = new Tuple<bool, bool>(true, true);
+                calledIndex = 0;
+            }
         }
-        else
-        {
-            ///inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-            updateDist = false;
-            SendApiRequest();
-        }
+
+
+
+
+
+        //_current = current;
+        //_enteredCol = enteredCol;
+
+        //if (enteredCol)
+        //{
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
+        //    updateDist = true;
+        //}
+        //else
+        //{
+        //    ///inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //    updateDist = false;
+        //    SendApiRequest();
+        //}
         //Debug.Log(current.tag);
     }
-    public void ReceiveCarInfo(float distanceBetweenObjs, InputController.FaceDir currentFaceDir, InputController.FaceDir currentRoadDir, bool pastBeacon)
+    public void ReceiveCarInfo(float distanceBeforeM)
     {
-        if (pastBeacon)
-        {
-            _distanceBetweenObjs = distanceBetweenObjs;
-        }
-        else
-        {
-            _beaconDistanceLeft = distanceBetweenObjs;
-        }
-        _pastBeacon = pastBeacon;
-        _currentFaceDir = currentFaceDir;
-        _currentRoadDir = currentRoadDir;
-
         receivedCarInfo = true;
+
+
+
+
+
+        //if (pastBeacon)
+        //{
+        //    _distanceBetweenObjs = distanceBetweenObjs;
+        //}
+        //else
+        //{
+        //    _beaconDistanceLeft = distanceBetweenObjs;
+        //}
+        //_pastBeacon = pastBeacon;
+        //_currentFaceDir = currentFaceDir;
+        //_currentRoadDir = currentRoadDir;
     }
-    public void UpdateCarInfo(float carDistance, float distanceBetweenObjs, bool pastBeacon)
-    {
-        _distanceBetweenObjs = carDistance;
-        _beaconDistanceLeft = distanceBetweenObjs;
-        _pastBeacon = pastBeacon;
-    }
+    //public void UpdateCarInfo(float carDistance, float distanceBetweenObjs, bool pastBeacon)
+    //{
+    //    _distanceBetweenObjs = carDistance;
+    //    _beaconDistanceLeft = distanceBetweenObjs;
+    //    _pastBeacon = pastBeacon;
+    //}
     public string UpdateUI()
     {
         string result = "NA";
 
-        if (_distanceBetweenObjs >= 0)
-        {
-            result = _distanceBetweenObjs.ToString("f0");
-        }
-        else if (_distanceBetweenObjs < 0)
-        {
-            result = _beaconDistanceLeft.ToString("f0");
-        }
+        //if (_distanceBetweenObjs >= 0)
+        //{
+        //    result = _distanceBetweenObjs.ToString("f0");
+        //}
+        //else if (_distanceBetweenObjs < 0)
+        //{
+        //    result = _beaconDistanceLeft.ToString("f0");
+        //}
 
         return result;
     }
@@ -82,8 +126,8 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     {
         inputController = FindObjectOfType<InputController>();
 
-
-
+        calledIndex = 0;
+        _dualColDic = inputController.dualColDic;
 
         //beaconCollider = beaconObj.GetComponent<SphereCollider>();
         //if (beaconCollider == null)
@@ -111,13 +155,16 @@ public class RoadMaintenanceBeacon : MonoBehaviour
         if (receivedCarInfo)
         {
             SendApiRequest();
-            //CarBeaconLogic();
             receivedCarInfo = false;
         }
-        if (updateDist)
-        {
-            inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, _current);
-        }
+
+
+
+
+        //if (updateDist)
+        //{
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.UPDATEDIR, _current);
+        //}
     }
     //private void CarBeaconLogic()
     //{
@@ -158,15 +205,38 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     //}
     private void SendApiRequest()
     {
-        if (_enteredCol)
+        if (_dualColDic.TryGetValue(_current.tag, out currentColDic))
         {
-            inputController.ReceiveApiObjRequest(InputController.apiEvents.WARNING, _current);
-            Debug.LogError("Collider Entered");
+            if (currentColDic.Equals(new Tuple<bool, bool>(true, false)))
+            {
+                Debug.LogError("11111");
+                inputController.ReceiveApiRequest(InputController.apiEvents.WARNING);
+            }
+            else if (currentColDic.Equals(new Tuple<bool, bool>(true, true)))
+            {
+                Debug.LogError("22222");
+                inputController.ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
+            }
+            //else if (currentColDic.Equals(new Tuple<bool, bool>(false, false)))
+            //{
+            //    Debug.LogError("33333");
+            //    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+            //}
         }
-        else
-        {
-            inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-            Debug.LogError("Collider Existed");
-        }
+
+
+
+
+
+        //if (_enteredCol)
+        //{
+        //    inputController.ReceiveApiObjRequest(InputController.apiEvents.WARNING, _current);
+        //    Debug.LogError("Collider Entered");
+        //}
+        //else
+        //{
+        //    inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+        //    Debug.LogError("Collider Existed");
+        //}
     }
 }

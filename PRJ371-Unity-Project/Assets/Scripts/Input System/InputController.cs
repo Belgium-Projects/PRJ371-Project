@@ -44,6 +44,8 @@ public class InputController : MonoBehaviour
     private float initialCarDistance;
     private float beaconDistanceLeft;
     private float timeBetweenObjs;
+    private float distanceBeforeM;
+    private bool col1Triggered;
     private bool initialDistance;
     private bool _pastBeacon;
     private Dictionary<string, Tuple<bool, bool>> _dualColDic;
@@ -144,6 +146,10 @@ public class InputController : MonoBehaviour
                 ReceiveApiRequest(InputController.apiEvents.GO);
             }
         }
+    }
+    private void Start()
+    {
+        col1Triggered = false;
     }
     private void Awake()
     {
@@ -277,7 +283,7 @@ public class InputController : MonoBehaviour
                 {
                     MoveDecelerate(acceleration, steering, braking);
                     var result = UpdateDistanceCalc(_infrastructureObj);
-                    roadMaintenanceBeacon.UpdateCarInfo(result.carDistance, result.beaconDistanceLeft, result.pastBeacon);
+                    //roadMaintenanceBeacon.UpdateCarInfo(result.carDistance, result.beaconDistanceLeft, result.pastBeacon);
                     ReceiveApiRequest(apiEvents.WARNING);
                 }
                 //else if (_infrastructureObj.tag.Contains("StopS"))
@@ -326,27 +332,49 @@ public class InputController : MonoBehaviour
     }
     private void DistanceCalc(GameObject infrastructureObj)
     {
-        if (initialDistance)
-        {
-            initialCarDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
-            initialDistance = false;
-        }
-        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+        //Call method to update Beacon UI
+        //if (infrastructureObj.tag.Contains("Beacon"))
+        //{
+        //    var obj1 = infrastructureObj.GetComponents<SphereCollider>()[0];
+        //    var obj2 = infrastructureObj.GetComponents<SphereCollider>()[1];
+        //    var calc = (obj2.radius - obj1.radius) / 3.6f;
+        //    //Debug.LogError(calc);
+        //}
 
-        if (carDistance >= 0)
-        {
-            roadMaintenanceBeacon.ReceiveCarInfo(carDistance, currentFaceDir, currentRoadDir, true);
-        }
-        else if (carDistance < 0)
-        {
-            beaconDistanceLeft = initialCarDistance - carDistance;
-            roadMaintenanceBeacon.ReceiveCarInfo(beaconDistanceLeft, currentFaceDir, currentRoadDir, false);
-        }
+
+
+        //if (initialDistance)
+        //{
+        //    initialCarDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+        //    initialDistance = false;
+        //}
+        //carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+
+        //if (carDistance >= 0)
+        //{
+        //    roadMaintenanceBeacon.ReceiveCarInfo(carDistance, currentFaceDir, currentRoadDir, true);
+        //}
+        //else if (carDistance < 0)
+        //{
+        //    beaconDistanceLeft = initialCarDistance - carDistance;
+        //    roadMaintenanceBeacon.ReceiveCarInfo(beaconDistanceLeft, currentFaceDir, currentRoadDir, false);
+        //}
     }
     private void TimeDistanceCalc(GameObject infrastructureObj)
     {
         carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
         timeBetweenObjs = (carDistance / speedCalc) * 3.6f;
+
+        if (infrastructureObj.tag.Contains("Beacon") && !col1Triggered)
+        {
+            var obj1 = infrastructureObj.GetComponents<SphereCollider>()[0];
+            var obj2 = infrastructureObj.GetComponents<SphereCollider>()[1];
+            distanceBeforeM = (obj2.radius - obj1.radius) / 3.6f;
+            col1Triggered = true;
+            //Debug.LogError(calc);
+        }
+
+        //Debug.LogError(timeBetweenObjs);
         //Debug.Log(carDistance);
         //Debug.Log(speedCalc);
         //Debug.Log(timeBetweenObjs);
@@ -355,7 +383,7 @@ public class InputController : MonoBehaviour
         switch (infrastructureObj.tag)
         {
             case "Beacon":
-                DistanceCalc(infrastructureObj);
+                roadMaintenanceBeacon.ReceiveCarInfo(distanceBeforeM);
                 break;
             case "North StopS":
                 //trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir);

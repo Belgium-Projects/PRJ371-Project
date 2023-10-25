@@ -127,7 +127,7 @@ public class CollisionDetection : MonoBehaviour
                     stopSign.ColliderTriggered(this.gameObject, false);
                     break;
                 case "Beacon":
-                    roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, true);
+                    roadMaintenanceBeacon.ColliderTriggered(this.gameObject, false);
                     break;
                 default: 
                     break;
@@ -144,7 +144,8 @@ public class CollisionDetection : MonoBehaviour
         {
             if (this.tag.Contains("Beacon"))
             {
-                roadMaintenanceBeacon.ColliderTriggered(other, this.gameObject, false);
+                Debug.LogError("00000");
+                roadMaintenanceBeacon.ColliderTriggered(this.gameObject, true);
             }
             else if (this.tag.Contains("Bend"))
             {
