@@ -90,7 +90,7 @@ public class InputController : MonoBehaviour
         dualColDic = new Dictionary<string, Tuple<bool, bool>>();
         foreach (CollisionDetection collision in _allColliders)
         {
-            if (!collision.tag.Contains("Road") && !collision.tag.Contains("Beacon"))
+            if (!collision.tag.Contains("Road"))// && !collision.tag.Contains("Beacon"))
             {
                 Debug.LogError(dualColDic);
                 if (!dualColDic.ContainsKey(collision.tag))
