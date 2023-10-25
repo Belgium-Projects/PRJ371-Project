@@ -15,61 +15,56 @@ public class RoadMaintenanceBeacon : MonoBehaviour
     private Tuple<bool, bool> currentColDic;
     private bool receivedCarInfo;
     private float _distanceBeforeM;
-    private int calledIndex;
+    private int enterIndex;
+    private int exitIndex;
     public void ColliderTriggered(GameObject current, bool resetCol)
     {
         _current = current;
 
         if (resetCol)
         {
-            if (calledIndex == 0)
+            exitIndex++;
+
+            if (exitIndex == 1)
+            {
+                _dualColDic[current.tag] = new Tuple<bool, bool>(false, true);
+            }
+            else if (exitIndex == 2)
             {
                 _dualColDic[current.tag] = new Tuple<bool, bool>(false, false);
                 inputController.ReceiveApiRequest(InputController.apiEvents.GO);
+                enterIndex = 0;
             }
         }
         else
         {
             inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
-            calledIndex++;
+            enterIndex++;
 
-            if (calledIndex == 1)
+            if (enterIndex == 1)
             {
                 _dualColDic[current.tag] = new Tuple<bool, bool>(true, false);
             }
-            else if (calledIndex == 2)
+            else if (enterIndex == 2)
             {
                 _dualColDic[current.tag] = new Tuple<bool, bool>(true, true);
-                calledIndex = 0;
+                enterIndex = 0;
             }
         }
     }
     public void ReceiveCarInfo(float distanceBeforeM)
     {
+        //Start slowing down if this distance = 100m for example
         _distanceBeforeM = distanceBeforeM;
 
         receivedCarInfo = true;
-    }
-    public string UpdateUI()
-    {
-        string result = "NA";
-        result = _distanceBeforeM.ToString("f0");
-        //if (_distanceBetweenObjs >= 0)
-        //{
-        //    result = _distanceBetweenObjs.ToString("f0");
-        //}
-        //else if (_distanceBetweenObjs < 0)
-        //{
-        //    result = _beaconDistanceLeft.ToString("f0");
-        //}
-
-        return result;
     }
     private void Start()
     {
         inputController = FindObjectOfType<InputController>();
 
-        calledIndex = 0;
+        enterIndex = 0;
+        exitIndex = 0;
         _dualColDic = inputController.dualColDic;
     }
     private void LateUpdate()

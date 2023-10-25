@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEngine.UIElements;
 
 public class InputController : MonoBehaviour
 {
@@ -16,104 +17,116 @@ public class InputController : MonoBehaviour
     [SerializeField] private float _maxBrakingTorque;
     [SerializeField] private AudioClip _skidSoundEffect;
     [SerializeField] private float _skidThreshold;
-
-    //Global variables
-    private PlayerInput playerInput;
-    private float braking;
-    private AudioSource _audioSource;
-    private TrafficLight trafficLight;
-    private RoadMaintenanceBeacon roadMaintenanceBeacon;
-
-    //Arduino car variables
     [SerializeField] private GameObject car;
     [SerializeField] private float maxSpeed;
     [SerializeField] private float minSpeed;
     [SerializeField] private float maxTorque;
     [SerializeField] private float torqueChange;
-    private apiEvents _apiRequest;
-    public apiEvents apiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
-    private GameObject _infrastructureObj;
-    private float speed;
-    private int speedCalc;
-    private float torqueCalc;
-    private float torqueNow;
+
+    //Global variables
+    private PlayerInput playerInput;
+    private AudioSource audioSource;
+    private TrafficLight trafficLight;
+    private RoadMaintenanceBeacon roadMaintenanceBeacon;
+    private StopSign stopSign;
     private Transform carTrans;
-    private FaceDir _currentFaceDir;
-    private FaceDir _currentRoadDir;
-    private float carDistance;
-    private float initialCarDistance;
-    private float beaconDistanceLeft;
-    private float timeBetweenObjs;
-    private float distanceBeforeM;
-    private bool col1Triggered;
-    private bool initialDistance;
-    private bool _pastBeacon;
-    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
-    public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
+    private GameObject _infrastructureObj;
     private CollisionDetection[] _allColliders;
     private CollisionDetection collisionDetection;
-    private StopSign stopSign;
-    public FaceDir currentFaceDir { get {return _currentFaceDir;} set {_currentFaceDir = value;}}
+    private WheelCollider wheelColPlaceH;
+    private Quaternion _wheelQuaternion;
+    private Vector3 _wheelPosition;
+    private Vector2 moveInput;
+    private bool col1Triggered;
+    private int speedCalc;
+    private float speed;
+    private float braking;
+    private float carDistance;
+    private float timeBetweenObjs;
+    private float distanceBeforeM;
+    private float acceleration;
+    private float steering;
+    private float thrustTorque;
+    private apiEvents _apiRequest;
+    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
+    private Tuple<WheelCollider, WheelCollider> frontWheelColDic;
+    private Tuple<WheelCollider, WheelCollider> backWheelColDic;
+    private Dictionary<string, Tuple<WheelCollider, WheelCollider>> wheelColDic;
+    private FaceDir _currentFaceDir;
+    private FaceDir _currentRoadDir;
+    public apiEvents apiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
+    public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
+    public FaceDir currentFaceDir { get { return _currentFaceDir; } set { _currentFaceDir = value; } }
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
-    //Arduino events enum
     public enum apiEvents
     {
+        //Arduino events enum
         GO,
         SLOWDOWN,
         WARNING,
         STOP,
-        SENDINFO,
-        UPDATEDIR
+        SENDINFO
     }
     public enum FaceDir
     {
+        //Car & Road facing direction enum
         North,
         South,
         East,
         West,
         Bend
     }
-    //Arduino event setting
     public void ReceiveApiRequest(apiEvents request)
     {
+        //Basic Arduino event request
         apiRequest = request;
-        Debug.Log("1 ~ Triggered " + apiRequest + " Event!");
+        Debug.LogError($"11111 ~ Received {request} Event");
     }
     public void ReceiveApiObjRequest(apiEvents request, GameObject infrastructureObj)
     {
-        initialDistance = true;
+        //Advanced Arduino event request
         apiRequest = request;
+        Debug.LogError($"22222 ~ Received {request} Event");
         _infrastructureObj = infrastructureObj;
-        Debug.Log("2 ~ Triggered " + apiRequest + " Event!");
     }
     private void PopulateInfColDic()
     {
+        //Setting dual collider infrstructure objects
         _allColliders = collisionDetection.RetreiveAllColliders();
         dualColDic = new Dictionary<string, Tuple<bool, bool>>();
+        wheelColDic = new Dictionary<string, Tuple<WheelCollider, WheelCollider>>();
+
         foreach (CollisionDetection collision in _allColliders)
         {
-            if (!collision.tag.Contains("Road"))// && !collision.tag.Contains("Beacon"))
+            if (!collision.tag.Contains("Road"))
             {
-                Debug.LogError(dualColDic);
                 if (!dualColDic.ContainsKey(collision.tag))
                 {
-                    Debug.LogError("Entered Dic Col");
                     dualColDic.Add(collision.tag, Tuple.Create(false, false));
-                }
-                else
-                {
-                    Debug.LogError("Exited Dic Col");
-                    //return;
                 }
             }
         }
-        foreach (var collider in dualColDic)
+
+        //Setting wheel collider objects
+        foreach (WheelCollider wheelCol in _wheelColliders)
         {
-            Debug.LogError($"Key: {collider.Key} Col1: {collider.Value.Item1} Col2: {collider.Value.Item2}");
+            if (!wheelCol.tag.Contains("Road"))
+            {
+                if (!wheelColDic.ContainsKey(wheelCol.tag))
+                {
+                    wheelColDic.Add(wheelCol.tag, Tuple.Create(wheelCol, wheelCol));
+                    wheelColPlaceH = wheelCol;
+                }
+                else
+                {
+                    wheelColDic[wheelCol.tag] = Tuple.Create(wheelColPlaceH, wheelCol);
+                }
+            }
         }
     }
     public void CarDirectionCalc()
     {
+        //Calculate which direction the car is facing
         if (carTrans.localEulerAngles.y > 45f && carTrans.localEulerAngles.y <= 135f)
         {
             currentFaceDir = FaceDir.North;
@@ -130,65 +143,51 @@ public class InputController : MonoBehaviour
         {
             currentFaceDir = FaceDir.West;
         }
-        Debug.Log(currentFaceDir);
-        //Debug.Log(carTrans.localEulerAngles.y);
     }
-    public void ColliderTriggered(GameObject current, bool enteredCol)
+    public void ColliderTriggered(bool resetCol)
     {
-        if (current.tag.Contains("Bend"))
+        //Car slows down in a bend in the road
+        if (resetCol)
         {
-            if (enteredCol)
-            {
-                ReceiveApiRequest(InputController.apiEvents.SLOWDOWN);
-            }
-            else
-            {
-                ReceiveApiRequest(InputController.apiEvents.GO);
-            }
+            ReceiveApiRequest(apiEvents.GO);
+        }
+        else
+        {
+            ReceiveApiRequest(apiEvents.SLOWDOWN);
         }
     }
     private void Start()
     {
+        //Initializing variables
         col1Triggered = false;
+        carTrans = car.GetComponent<Transform>();
+
+        ReceiveApiRequest(apiEvents.GO);
     }
     private void Awake()
     {
+        //Getting other scripts in the scene
         playerInput = GetComponent<PlayerInput>();
-        if (playerInput == null)
-        {
-            Debug.LogError("Player input component is missing");
-        }
-        _audioSource = GetComponent<AudioSource>();
-        if (_audioSource == null)
-        {
-            Debug.LogError("Car missing audio source");
-        }
+        audioSource = GetComponent<AudioSource>();
         trafficLight = FindObjectOfType<TrafficLight>();
-        if (trafficLight == null)
-        {
-            Debug.LogError("No trafficLight script in the scene");
-        }
         roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
-        if (roadMaintenanceBeacon == null)
-        {
-            Debug.LogError("No roadMaintenanceBeacon script in the scene");
-        }
         collisionDetection = FindObjectOfType<CollisionDetection>();
-        if (collisionDetection == null)
-        {
-            Debug.LogError("No collisionDetection script in the scene");
-        }
         stopSign = FindObjectOfType<StopSign>();
-        if (stopSign == null)
-        {
-            Debug.LogError("No stopSign script in the scene");
-        }
+
+        //Checking is scripts are not in the scene & logging error
+        if (!playerInput) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(playerInput));
+        if (!audioSource) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(audioSource));
+        if (!trafficLight) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(trafficLight));
+        if (!roadMaintenanceBeacon) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(roadMaintenanceBeacon));
+        if (!collisionDetection) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(collisionDetection));
+        if (!stopSign) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(stopSign));
+
+        //Populating dictionaries
         PopulateInfColDic();
-        ReceiveApiRequest(apiEvents.GO);
-        carTrans = car.GetComponent<Transform>();
     }
     public void Braking(InputAction.CallbackContext context)
     {
+        //Sets braking variable is input event is triggered
         if (context.started)
         {
             braking = 1f;
@@ -200,8 +199,9 @@ public class InputController : MonoBehaviour
     }
     private void SkidCheck()
     {
-        int skidCount = 0;
         //Logic for adding Skid particals and playing audio
+        int skidCount = 0;
+
         for (int i = 0; i < _wheelColliders.Length; i++)
         {
             WheelHit wheelHit;
@@ -212,481 +212,235 @@ public class InputController : MonoBehaviour
             {
                 skidCount++;
 
-                if (!_audioSource.isPlaying)
+                if (!audioSource.isPlaying)
                 {
-                    _audioSource.PlayOneShot(_skidSoundEffect);
+                    audioSource.PlayOneShot(_skidSoundEffect);
                 }
             }
         }
 
         //Checks if wheels is not skidding to turn the sound off
-        if (skidCount == 0 & _audioSource.isPlaying)
+        if (skidCount == 0 & audioSource.isPlaying)
         {
-            _audioSource.Stop();
+            audioSource.Stop();
         }
     }
     void Update()
     {
-        //float acceleration = Input.GetAxis("Vertical");
-        //float steering = Input.GetAxis("Horizontal");
-        Vector2 moveInput = playerInput.actions["Move"].ReadValue<Vector2>();
+        //Gets input value and setting the different axis
+        moveInput = playerInput.actions["Move"].ReadValue<Vector2>();
 
-        float acceleration = moveInput.y;
-        float steering = moveInput.x;
+        acceleration = moveInput.y;
+        steering = moveInput.x;
 
-        //Move(acceleration, steering, braking);
+        //Limiting variable values to a range
+        acceleration = Mathf.Clamp(acceleration, -1f, 1f);
+        steering = Mathf.Clamp(steering, -1f, 1f) * _maxSteeringAngle;
+        braking = Mathf.Clamp(braking, 0f, 1f) * _maxBrakingTorque;
+
         SkidCheck();
-        //if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        //{
-        //    Debug.Log("Spacebar key was pressed");
-        //}
-        //speed = ((car.GetComponent<Rigidbody>().velocity.magnitude * 3.6) <= maxSpeed) ? 
-            //MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)) : maxSpeed;
-        //Debug.Log(speed.ToString("f0"));
+
+        //Update UI elements
         switch (apiRequest)
         {
             case apiEvents.GO:
-                MoveAccelerate(acceleration, steering, braking);
-                // Incrementally speed up the car to normal speed
-                //speed = Mathf.Min(speed + speedChange * Time.deltaTime, 10.0f);
+                //Call Update UI
                 break;
             case apiEvents.SLOWDOWN:
-                MoveDecelerate(acceleration, steering, braking);
-                // Incrementally slow down the car
-                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
+                //Call Update UI
                 break;
             case apiEvents.WARNING:
-                MoveDecelerate(acceleration, steering, braking);
-                // Incrementally slow down the car
-                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 5.0f);
+                //Call Update UI
                 break;
             case apiEvents.STOP:
-                MoveStop(acceleration, steering, braking);
-                // Incrementally bring the car to a stop
-                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
+                //Call Update UI
                 break;
             case apiEvents.SENDINFO:
-                MoveAccelerate(acceleration, steering, braking);
                 TimeDistanceCalc(_infrastructureObj);
-                // Incrementally bring the car to a stop
-                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
-                break;
-            case apiEvents.UPDATEDIR:
-                Debug.LogError(_infrastructureObj);
-                if (_infrastructureObj.tag.Contains("Road"))
-                {
-                    MoveAccelerate(acceleration, steering, braking);
-                    //trafficLight.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
-                    ReceiveApiRequest(apiEvents.GO);
-                }
-                else if (_infrastructureObj.tag.Contains("Beacon"))
-                {
-                    MoveDecelerate(acceleration, steering, braking);
-                    var result = UpdateDistanceCalc(_infrastructureObj);
-                    //roadMaintenanceBeacon.UpdateCarInfo(result.carDistance, result.beaconDistanceLeft, result.pastBeacon);
-                    ReceiveApiRequest(apiEvents.WARNING);
-                }
-                //else if (_infrastructureObj.tag.Contains("StopS"))
-                //{
-                //    MoveAccelerate(acceleration, steering, braking);
-                //    stopSign.UpdateCarInfo(_currentFaceDir, _currentRoadDir);
-                //    ReceiveApiRequest(apiEvents.GO);
-                //}
-                // Incrementally bring the car to a stop
-                //speed = Mathf.Max(speed - speedChange * Time.deltaTime, 0.0f);
+                //Call Update UI
                 break;
             default:
-                // Do nothing (or maintain current speed)
                 break;
         }
     }
     private void LateUpdate()
     {
+        //Capping speed value at max
         speed = (speedCalc <= maxSpeed) ? speedCalc : maxSpeed;
-        //Debug.Log(speed);
-        if (speed <= minSpeed)
-        {
-            Debug.Log("Min Speed Reached");
-        }
     }
     private void FixedUpdate()
     {
+        //Getting car speed value
         speedCalc = int.Parse(MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)).ToString("f0"));
-    }
-    private (float beaconDistanceLeft, float carDistance, bool pastBeacon) UpdateDistanceCalc(GameObject infrastructureObj)
-    {
-        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
 
-        if (carDistance < 0)
+        //Simulating gear change from drive ~ reverse
+        if (acceleration > 0f)
         {
-            beaconDistanceLeft = initialCarDistance - carDistance;
-            _pastBeacon = true;
+            if (speed < 2)
+            {
+                thrustTorque = acceleration * torque;
+            }
+        }
+        else if (acceleration < 0f)
+        {
+            if (speed < 2)
+            {
+                thrustTorque = acceleration * torque;
+            }
+        }
+        else if (acceleration == 0f)
+        {
+            thrustTorque = 0f;
+        }
+
+        CarMovement();
+    }
+    private void CarMovement()
+    {
+        SetWheelParms();
+
+        //Car movement behaviour steering ~ front wheels & braking ~ back wheels
+        if (braking > 0)
+        {
+            if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
+            {
+                frontWheelColDic.Item1.motorTorque = 0f;
+                frontWheelColDic.Item2.motorTorque = 0f;
+            }
+            if (wheelColDic.TryGetValue("Back Wheels", out backWheelColDic))
+            {
+                backWheelColDic.Item1.brakeTorque = braking;
+                backWheelColDic.Item2.brakeTorque = braking;
+            }
         }
         else
         {
-            beaconDistanceLeft = 0f;
-            _pastBeacon = false;
+            if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
+            {
+                if (apiRequest.Equals(apiEvents.GO))
+                {
+                    if (speed <= maxSpeed)
+                    {
+                        frontWheelColDic.Item1.motorTorque = thrustTorque;
+                        frontWheelColDic.Item2.motorTorque = thrustTorque;
+                    }
+                    else
+                    {
+                        frontWheelColDic.Item1.motorTorque = 0f;
+                        frontWheelColDic.Item2.motorTorque = 0f;
+                    }
+                }
+                else if (apiRequest.Equals(apiEvents.SLOWDOWN))
+                {
+                    if (speed >= minSpeed)
+                    {
+                        frontWheelColDic.Item1.motorTorque = 0f;
+                        frontWheelColDic.Item2.motorTorque = 0f;
+                    }
+                    else
+                    {
+                        frontWheelColDic.Item1.motorTorque = thrustTorque;
+                        frontWheelColDic.Item2.motorTorque = thrustTorque;
+                    }
+                }
+                else if (apiRequest.Equals(apiEvents.STOP))
+                {
+                    frontWheelColDic.Item1.motorTorque = 0f;
+                    frontWheelColDic.Item2.motorTorque = 0f;
+                }
+            }
+            if (wheelColDic.TryGetValue("Back Wheels", out backWheelColDic))
+            {
+                if (apiRequest.Equals(apiEvents.GO))
+                {
+                    if (speed <= maxSpeed)
+                    {
+                        backWheelColDic.Item1.brakeTorque = 0f;
+                        backWheelColDic.Item2.brakeTorque = 0f;
+                    }
+                    else
+                    {
+                        backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
+                        backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                    }
+                }
+                else if (apiRequest.Equals(apiEvents.SLOWDOWN))
+                {
+                    if (speed >= minSpeed)
+                    {
+                        backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
+                        backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                    }
+                    else
+                    {
+                        backWheelColDic.Item1.brakeTorque = 0f;
+                        backWheelColDic.Item2.brakeTorque = 0f;
+                    }
+                }
+                else if (apiRequest.Equals(apiEvents.STOP))
+                {
+                    backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
+                    backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                }
+            }
         }
 
-        return (beaconDistanceLeft, carDistance, _pastBeacon);
+        //Setting steering angle
+        if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
+        {
+            frontWheelColDic.Item1.steerAngle = steering;
+            frontWheelColDic.Item2.steerAngle = steering;
+        }
     }
-    private void DistanceCalc(GameObject infrastructureObj)
+    private void SetWheelParms()
     {
-        //Call method to update Beacon UI
-        //if (infrastructureObj.tag.Contains("Beacon"))
-        //{
-        //    var obj1 = infrastructureObj.GetComponents<SphereCollider>()[0];
-        //    var obj2 = infrastructureObj.GetComponents<SphereCollider>()[1];
-        //    var calc = (obj2.radius - obj1.radius) / 3.6f;
-        //    //Debug.LogError(calc);
-        //}
-
-
-
-        //if (initialDistance)
-        //{
-        //    initialCarDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
-        //    initialDistance = false;
-        //}
-        //carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
-
-        //if (carDistance >= 0)
-        //{
-        //    roadMaintenanceBeacon.ReceiveCarInfo(carDistance, currentFaceDir, currentRoadDir, true);
-        //}
-        //else if (carDistance < 0)
-        //{
-        //    beaconDistanceLeft = initialCarDistance - carDistance;
-        //    roadMaintenanceBeacon.ReceiveCarInfo(beaconDistanceLeft, currentFaceDir, currentRoadDir, false);
-        //}
+        //Gets world position & rotation of the wheels and sets it in mesh
+        foreach (var wheel in _wheelColliders)
+        {
+            wheel.GetWorldPose(out _wheelPosition, out _wheelQuaternion);
+            wheel.transform.GetChild(0).transform.position = _wheelPosition;
+            wheel.transform.GetChild(0).transform.rotation = _wheelQuaternion;
+        }
     }
     private void TimeDistanceCalc(GameObject infrastructureObj)
     {
+        //Calculating distance between car & infrastructure element & time to reach
         carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
         timeBetweenObjs = (carDistance / speedCalc) * 3.6f;
 
+        //Calculating distance to road maintenance
         if (infrastructureObj.tag.Contains("Beacon") && !col1Triggered)
         {
             var obj1 = infrastructureObj.GetComponents<SphereCollider>()[0];
             var obj2 = infrastructureObj.GetComponents<SphereCollider>()[1];
+
             distanceBeforeM = (obj2.radius - obj1.radius) / 3.6f;
+
             col1Triggered = true;
-            //Debug.LogError(calc);
         }
 
-        //Debug.LogError(timeBetweenObjs);
-        //Debug.Log(carDistance);
-        //Debug.Log(speedCalc);
-        //Debug.Log(timeBetweenObjs);
         CarDirectionCalc();
 
+        //Sends informatin to infrastructure elements
         switch (infrastructureObj.tag)
         {
             case "Beacon":
                 roadMaintenanceBeacon.ReceiveCarInfo(distanceBeforeM);
                 break;
             case "North StopS":
-                //trafficLight.ReceiveCarInfo(timeBetweenObjs, currentFaceDir);
                 stopSign.ReceiveCarInfo(_currentFaceDir, _currentRoadDir);
                 break;
             case "North TrafficL":
-                Debug.LogError("North TrafficL");
-                Debug.LogError("Input RoadDir " + currentRoadDir);
-                Debug.LogError("Input CarDir " + currentFaceDir);
                 trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             case "East TrafficL":
-                Debug.LogError("East TrafficL");
-                Debug.LogError("Input RoadDir " + currentRoadDir);
-                Debug.LogError("Input CarDir " + currentFaceDir);
                 trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             case "West TrafficL":
-                Debug.LogError("West TrafficL");
-                Debug.LogError("Input RoadDir " + currentRoadDir);
-                Debug.LogError("Input CarDir " + currentFaceDir);
                 trafficLight.ReceiveCarInfo(timeBetweenObjs);
                 break;
             default:
                 break;
-        }
-    }
-    private void MoveAccelerate(float acceleration, float steering, float braking)
-    {
-        //Wheel variable declaration
-        Quaternion quaternion;
-        Vector3 position;
-
-        //Clamed values to -1,1 range
-        acceleration = Mathf.Clamp(acceleration, -1f, 1f);
-        steering = Mathf.Clamp(steering, -1f, 1f) * _maxSteeringAngle;
-        braking = Mathf.Clamp(braking, 0f, 1f) * _maxBrakingTorque;
-
-        //float thrustTorque = acceleration * torque;
-        Quaternion newRotation = Quaternion.AngleAxis(90, Vector3.up);
-
-        if (acceleration > 0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-            }
-        }
-        else if (acceleration < -0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-                //Debug.Log("Check "+speed);
-            }
-        }
-        else if (acceleration < 0.1 || acceleration > -0.1)
-        {
-            torqueNow = 0f;
-            torqueCalc = 0f;
-        }
-
-        foreach (var wheel in _wheelColliders)
-        {
-            //wheel.motorTorque = thrustTorque;
-
-            //Gets world position & rotation of the wheels and sets it in mesh
-            wheel.GetWorldPose(out position, out quaternion);
-            wheel.transform.GetChild(0).transform.position = position;
-            wheel.transform.GetChild(0).transform.rotation = quaternion;
-            //Debug.Log("Accelerating Speed");
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,0.0005f);
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,Time.deltaTime*0.0000005f);
-        }
-        for (int i = 0; i < _wheelColliders.Length; i++)
-        {
-            //if (speed < maxSpeed)
-            //{
-            //    _wheelColliders[i].motorTorque = thrustTorque;
-            //}
-            //else
-            //{
-            //    _wheelColliders[i].motorTorque = 0;
-            //}
-            if (speed < maxSpeed)
-            {
-                _wheelColliders[i].motorTorque = torqueNow;
-                _wheelColliders[i].brakeTorque = 0f;
-                Debug.Log("Under Min Speed & Not Braking");
-            }
-            else if ((torqueNow > 0.1 || torqueNow < -0.1) && braking <= 0)
-            {
-                _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 0.6f * _maxBrakingTorque;
-                //_wheelColliders[i].motorTorque = thrustTorque;
-                Debug.Log("Slowing Down & Switch over to Stop");
-                //ReceiveApiRequest(apiEvents.STOP);
-            }
-            if (i < 2)
-            {
-                _wheelColliders[i].steerAngle = steering;
-            }
-            else
-            {
-                _wheelColliders[i].brakeTorque = braking;
-                if (braking > 0)
-                {
-                    Debug.Log("Braking");
-                    _wheelColliders[i].motorTorque = 0;
-                }
-            }
-        }
-    }
-    private void MoveDecelerate(float acceleration, float steering, float braking)
-    {
-        //Wheel variable declaration
-        Quaternion quaternion;
-        Vector3 position;
-
-        //Clamed values to -1,1 range
-        acceleration = Mathf.Clamp(acceleration, -1f, 1f);
-        steering = Mathf.Clamp(steering, -1f, 1f) * _maxSteeringAngle;
-        braking = Mathf.Clamp(braking, 0f, 1f) * _maxBrakingTorque;
-        //speedChange = Mathf.Clamp(speedChange, 0f, 1f);
-
-        //float thrustTorque = acceleration * torque;
-        //float torqueNow = (acceleration > 0.1) ? (torqueCalc < maxSpeed)  torqueCalc++ : 0f;
-
-        if (acceleration > 0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-            }
-        }
-        else if (acceleration < -0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-                //Debug.Log("Check "+speed);
-            }
-        }
-        else if (acceleration < 0.1 || acceleration > -0.1)
-        {
-            torqueNow = 0f;
-            torqueCalc = 0f;
-        }
-
-        //Debug.Log("accelerate"+acceleration);
-        //Debug.Log("Speed"+torqueNow);
-        Quaternion newRotation = Quaternion.AngleAxis(90, Vector3.up);
-
-        foreach (var wheel in _wheelColliders)
-        {
-            //wheel.motorTorque = thrustTorque;
-
-            //Gets world position & rotation of the wheels and sets it in mesh
-            wheel.GetWorldPose(out position, out quaternion);
-            wheel.transform.GetChild(0).transform.position = position;
-            wheel.transform.GetChild(0).transform.rotation = quaternion;
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,0.0005f);
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,Time.deltaTime*0.0000005f);
-        }
-        for (int i = 0; i < _wheelColliders.Length; i++)
-        {
-            if (speed >= minSpeed)
-            {
-                _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 0.6f * _maxBrakingTorque;
-                //_wheelColliders[i].motorTorque = thrustTorque;
-                Debug.Log("Slowing Down");
-            }
-            else if ((torqueNow > 0.1 || torqueNow < -0.1) && braking <= 0)
-            {
-                _wheelColliders[i].motorTorque = torqueNow;
-                _wheelColliders[i].brakeTorque = 0f;
-                Debug.Log("Under Min Speed & Not Braking");
-            }
-            //Debug.Log(torqueNow);
-            if (i < 2)
-            {
-                _wheelColliders[i].steerAngle = steering;
-            }
-            else
-            {
-                _wheelColliders[i].brakeTorque = braking;
-                if (braking > 0)
-                {
-                    Debug.Log("Braking");
-                    _wheelColliders[i].motorTorque = 0;
-                }
-            }
-        }
-    }
-    private void MoveStop(float acceleration, float steering, float braking)
-    {
-        //Wheel variable declaration
-        Quaternion quaternion;
-        Vector3 position;
-
-        //Clamed values to -1,1 range
-        acceleration = Mathf.Clamp(acceleration, -1f, 1f);
-        steering = Mathf.Clamp(steering, -1f, 1f) * _maxSteeringAngle;
-        braking = Mathf.Clamp(braking, 0f, 1f) * _maxBrakingTorque;
-
-        //float thrustTorque = acceleration * torque;
-
-        if (acceleration > 0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-            }
-        }
-        else if (acceleration < -0.1)
-        {
-            if (speed < 2)
-            {
-                if (torqueCalc < maxTorque)
-                {
-                    torqueCalc += torqueChange;
-                }
-                torqueNow = acceleration * torqueCalc;
-                //Debug.Log("Check "+speed);
-            }
-        }
-        else if (acceleration < 0.1 || acceleration > -0.1)
-        {
-            torqueNow = 0f;
-            torqueCalc = 0f;
-        }
-
-        Quaternion newRotation = Quaternion.AngleAxis(90, Vector3.up);
-
-        foreach (var wheel in _wheelColliders)
-        {
-            //wheel.motorTorque = thrustTorque;
-
-            //Gets world position & rotation of the wheels and sets it in mesh
-            wheel.GetWorldPose(out position, out quaternion);
-            wheel.transform.GetChild(0).transform.position = position;
-            wheel.transform.GetChild(0).transform.rotation = quaternion;
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,0.0005f);
-            //wheel.transform.GetChild(0).transform.rotation = Quaternion.Slerp(quaternion,newRotation,Time.deltaTime*0.0000005f);
-        }
-        for (int i = 0; i < _wheelColliders.Length; i++)
-        {
-            //if (speed < maxSpeed)
-            //{
-            //    _wheelColliders[i].motorTorque = thrustTorque;
-            //}
-            //else
-            //{
-            //    _wheelColliders[i].motorTorque = 0;
-            //}
-            if (speed >= 0)
-            {
-                _wheelColliders[i].motorTorque = 0;
-                _wheelColliders[i].brakeTorque = 1f * _maxBrakingTorque;
-                //_wheelColliders[i].motorTorque = thrustTorque;
-                Debug.Log("Slowing Down");
-            }
-            //else if ((torqueNow > 0.1 || torqueNow < -0.1) && braking <= 0)
-            //{
-            //    _wheelColliders[i].motorTorque = torqueNow;
-            //    _wheelColliders[i].brakeTorque = 0f;
-            //    Debug.Log("Under Min Speed & Not Braking");
-            //}
-
-            if (i < 2)
-            {
-                _wheelColliders[i].steerAngle = steering;
-            }
-            else
-            {
-                _wheelColliders[i].brakeTorque = braking;
-                if (braking > 0)
-                {
-                    Debug.Log("Braking");
-                    _wheelColliders[i].motorTorque = 0;
-                }
-            }
         }
     }
 }

@@ -118,21 +118,6 @@ public class TrafficLight : MonoBehaviour
 
         receivedCarInfo = true;
     }
-    public string UpdateUI()
-    {
-        string result = "N/A";
-        TrafficLights currentTrafficL;
-
-        if (receivedCarInfo)
-        {
-            if (trafficLDic.TryGetValue(_current.tag, out currentTrafficL))
-            {
-                result = inputController.apiRequest.ToString() + "," + currentTrafficL.currentSignal.ToString();
-            }
-        }
-
-        return result;
-    }
     void Start()
     {
         inputController = FindObjectOfType<InputController>();

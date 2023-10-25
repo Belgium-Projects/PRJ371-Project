@@ -2856,8 +2856,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.0096068, y: 0.8000001, z: 35.570995}
-  m_Center: {x: -2.5001755, y: 0.3, z: 16.87044}
+  m_Size: {x: 2.0096068, y: 0.8000001, z: 38.49832}
+  m_Center: {x: -2.5001755, y: 0.3, z: 18.334103}
 --- !u!1 &853327368
 GameObject:
   m_ObjectHideFlags: 0
@@ -3306,8 +3306,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 5, y: 0.8000001, z: 7.5007744}
-  m_Center: {x: -2.5, y: 0.3, z: 6.249613}
+  m_Size: {x: 5, y: 0.8000001, z: 4.542694}
+  m_Center: {x: -2.5, y: 0.3, z: 7.728653}
 --- !u!1 &979689500
 GameObject:
   m_ObjectHideFlags: 0
@@ -4036,7 +4036,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 26
+  m_Radius: 28
   m_Center: {x: -6, y: 0, z: 0}
 --- !u!114 &1093665426
 MonoBehaviour:
@@ -4069,7 +4069,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 54
+  m_Radius: 34
   m_Center: {x: -6, y: 0, z: 0}
 --- !u!1001 &1101936679
 PrefabInstance:
@@ -9639,7 +9639,7 @@ PrefabInstance:
     - target: {fileID: 891683624408998365, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: m_TagString
-      value: Car
+      value: Front Wheels
       objectReference: {fileID: 0}
     - target: {fileID: 995759892862129520, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
@@ -9669,7 +9669,7 @@ PrefabInstance:
     - target: {fileID: 1946684643089571793, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: m_TagString
-      value: Car
+      value: Back Wheels
       objectReference: {fileID: 0}
     - target: {fileID: 2199779877255377675, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
@@ -9699,7 +9699,7 @@ PrefabInstance:
     - target: {fileID: 3349293350989182453, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: m_TagString
-      value: Car
+      value: Back Wheels
       objectReference: {fileID: 0}
     - target: {fileID: 4085256207259268888, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
@@ -9709,7 +9709,7 @@ PrefabInstance:
     - target: {fileID: 4085256207259268888, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: m_TagString
-      value: Car
+      value: Front Wheels
       objectReference: {fileID: 0}
     - target: {fileID: 5883922159521981640, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
@@ -9873,8 +9873,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
+      propertyPath: m_Drag
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
       propertyPath: m_Mass
       value: 750
+      objectReference: {fileID: 0}
+    - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
+        type: 3}
+      propertyPath: m_AngularDrag
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
@@ -9889,7 +9899,7 @@ PrefabInstance:
     - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
       propertyPath: m_CenterOfMass.y
-      value: 0.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8866816707888484699, guid: a1346bc7a17aa044e882d306e2e5743d,
         type: 3}
