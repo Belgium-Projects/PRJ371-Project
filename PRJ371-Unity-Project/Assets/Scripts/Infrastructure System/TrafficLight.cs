@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [System.Serializable]
@@ -25,19 +24,19 @@ public class TrafficLight : MonoBehaviour
     [SerializeField] private List<TrafficLights> trafficLights;
 
     //Global variables
-    private float _timer = 0f;
-    private int _colorIndex = 0;
-    private InputController inputController;
-    private float _timeBetweenObjs;
-    private bool receivedCarInfo;
     private GameObject _current;
+    private InputController inputController;
     private Dictionary<string, TrafficLights> trafficLDic;
+    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
+    private Tuple<bool, bool> currentColDic;
     private TrafficLights selectTrafficL;
     private TrafficLights sendTrafficLReq;
-    private Dictionary<string, Tuple<bool, bool>> _dualColDic;
-    private int calledIndex;
+    private bool receivedCarInfo;
     private bool coIsRunning;
-    private Tuple<bool, bool> currentColDic;
+    private float _timer = 0f;
+    private float _timeBetweenObjs;
+    private int _colorIndex = 0;
+    private int calledIndex;
     
     //Get|Set variables
     public bool roadDirChanged { get; set; }
