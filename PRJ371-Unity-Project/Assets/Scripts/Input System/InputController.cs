@@ -37,9 +37,13 @@ public class InputController : MonoBehaviour
     private Quaternion _wheelQuaternion;
     private Vector3 _wheelPosition;
     private Vector2 moveInput;
+    private FaceDir _currentFaceDir;
+    private FaceDir _currentRoadDir;
+    private apiEvents _apiRequest;
     private bool col1Triggered;
-    private int speedCalc;
-    private float speed;
+    private bool _warning;
+    private float _speed;
+    private float _infrastructurDis;
     private float braking;
     private float carDistance;
     private float timeBetweenObjs;
@@ -47,14 +51,15 @@ public class InputController : MonoBehaviour
     private float acceleration;
     private float steering;
     private float thrustTorque;
-    private apiEvents _apiRequest;
+    private int speedCalc;
     private Dictionary<string, Tuple<bool, bool>> _dualColDic;
     private Tuple<WheelCollider, WheelCollider> frontWheelColDic;
     private Tuple<WheelCollider, WheelCollider> backWheelColDic;
     private Dictionary<string, Tuple<WheelCollider, WheelCollider>> wheelColDic;
-    private FaceDir _currentFaceDir;
-    private FaceDir _currentRoadDir;
-    public apiEvents apiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
+    public apiEvents ApiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
+    public bool Warning { get { return _warning; } set { _warning = value; } } //Set
+    public float Speed { get { return _speed; } set { _speed = value; } }
+    public float InfrastructureDis { get { return _infrastructurDis; } set { _infrastructurDis = value; } } //Set
     public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
     public FaceDir currentFaceDir { get { return _currentFaceDir; } set { _currentFaceDir = value; } }
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
@@ -79,13 +84,13 @@ public class InputController : MonoBehaviour
     public void ReceiveApiRequest(apiEvents request)
     {
         //Basic Arduino event request
-        apiRequest = request;
+        ApiRequest = request;
         Debug.LogError($"11111 ~ Received {request} Event");
     }
     public void ReceiveApiObjRequest(apiEvents request, GameObject infrastructureObj)
     {
         //Advanced Arduino event request
-        apiRequest = request;
+        ApiRequest = request;
         Debug.LogError($"22222 ~ Received {request} Event");
         _infrastructureObj = infrastructureObj;
     }
@@ -241,7 +246,7 @@ public class InputController : MonoBehaviour
         SkidCheck();
 
         //Update UI elements
-        switch (apiRequest)
+        switch (ApiRequest)
         {
             case apiEvents.GO:
                 //Call Update UI
@@ -266,7 +271,7 @@ public class InputController : MonoBehaviour
     private void LateUpdate()
     {
         //Capping speed value at max
-        speed = (speedCalc <= maxSpeed) ? speedCalc : maxSpeed;
+        Speed = (speedCalc <= maxSpeed) ? speedCalc : maxSpeed;
     }
     private void FixedUpdate()
     {
@@ -276,14 +281,14 @@ public class InputController : MonoBehaviour
         //Simulating gear change from drive ~ reverse
         if (acceleration > 0f)
         {
-            if (speed < 2)
+            if (Speed < 2)
             {
                 thrustTorque = acceleration * torque;
             }
         }
         else if (acceleration < 0f)
         {
-            if (speed < 2)
+            if (Speed < 2)
             {
                 thrustTorque = acceleration * torque;
             }
@@ -317,9 +322,9 @@ public class InputController : MonoBehaviour
         {
             if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
             {
-                if (apiRequest.Equals(apiEvents.GO))
+                if (ApiRequest.Equals(apiEvents.GO))
                 {
-                    if (speed <= maxSpeed)
+                    if (Speed <= maxSpeed)
                     {
                         frontWheelColDic.Item1.motorTorque = thrustTorque;
                         frontWheelColDic.Item2.motorTorque = thrustTorque;
@@ -330,9 +335,9 @@ public class InputController : MonoBehaviour
                         frontWheelColDic.Item2.motorTorque = 0f;
                     }
                 }
-                else if (apiRequest.Equals(apiEvents.SLOWDOWN))
+                else if (ApiRequest.Equals(apiEvents.SLOWDOWN))
                 {
-                    if (speed >= minSpeed)
+                    if (Speed >= minSpeed)
                     {
                         frontWheelColDic.Item1.motorTorque = 0f;
                         frontWheelColDic.Item2.motorTorque = 0f;
@@ -343,7 +348,7 @@ public class InputController : MonoBehaviour
                         frontWheelColDic.Item2.motorTorque = thrustTorque;
                     }
                 }
-                else if (apiRequest.Equals(apiEvents.STOP))
+                else if (ApiRequest.Equals(apiEvents.STOP))
                 {
                     frontWheelColDic.Item1.motorTorque = 0f;
                     frontWheelColDic.Item2.motorTorque = 0f;
@@ -351,9 +356,9 @@ public class InputController : MonoBehaviour
             }
             if (wheelColDic.TryGetValue("Back Wheels", out backWheelColDic))
             {
-                if (apiRequest.Equals(apiEvents.GO))
+                if (ApiRequest.Equals(apiEvents.GO))
                 {
-                    if (speed <= maxSpeed)
+                    if (Speed <= maxSpeed)
                     {
                         backWheelColDic.Item1.brakeTorque = 0f;
                         backWheelColDic.Item2.brakeTorque = 0f;
@@ -364,9 +369,9 @@ public class InputController : MonoBehaviour
                         backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
                     }
                 }
-                else if (apiRequest.Equals(apiEvents.SLOWDOWN))
+                else if (ApiRequest.Equals(apiEvents.SLOWDOWN))
                 {
-                    if (speed >= minSpeed)
+                    if (Speed >= minSpeed)
                     {
                         backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
                         backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
@@ -377,7 +382,7 @@ public class InputController : MonoBehaviour
                         backWheelColDic.Item2.brakeTorque = 0f;
                     }
                 }
-                else if (apiRequest.Equals(apiEvents.STOP))
+                else if (ApiRequest.Equals(apiEvents.STOP))
                 {
                     backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
                     backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
