@@ -34,14 +34,26 @@ public class InputController : MonoBehaviour
     private CollisionDetection[] _allColliders;
     private CollisionDetection collisionDetection;
     private WheelCollider wheelColPlaceH;
+    private SphereCollider obj1;
+    private SphereCollider obj2;
     private Quaternion _wheelQuaternion;
     private Vector3 _wheelPosition;
+    private Vector3 initialCarPosition;
     private Vector2 moveInput;
     private FaceDir _currentFaceDir;
     private FaceDir _currentRoadDir;
     private apiEvents _apiRequest;
     private bool col1Triggered;
+    private bool triggeredCol;
     private bool _warning;
+    private bool _infrastructureDisActive;
+    private bool goEvent;
+    private bool slowdownEvent;
+    private bool stopEvent;
+    private bool sendinfoEvent;
+    //private float radiusResult;
+    private float positionResult;
+    private float positionCalc;
     private float _speed;
     private float _infrastructurDis;
     private float braking;
@@ -57,9 +69,11 @@ public class InputController : MonoBehaviour
     private Tuple<WheelCollider, WheelCollider> backWheelColDic;
     private Dictionary<string, Tuple<WheelCollider, WheelCollider>> wheelColDic;
     public apiEvents ApiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
-    public bool Warning { get { return _warning; } set { _warning = value; } } //Set
+    public bool Warning { get { return _warning; } set { _warning = value; } }
     public float Speed { get { return _speed; } set { _speed = value; } }
-    public float InfrastructureDis { get { return _infrastructurDis; } set { _infrastructurDis = value; } } //Set
+    public float MaxSpeed { get { return maxSpeed; }}
+    public float InfrastructureDis { get { return _infrastructurDis; } set { _infrastructurDis = value; } }
+    public bool InfrastructureDisActive { get { return _infrastructureDisActive; } set { _infrastructureDisActive = value; } }
     public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
     public FaceDir currentFaceDir { get { return _currentFaceDir; } set { _currentFaceDir = value; } }
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
@@ -68,8 +82,8 @@ public class InputController : MonoBehaviour
         //Arduino events enum
         GO,
         SLOWDOWN,
-        WARNING,
         STOP,
+        WARNING,
         SENDINFO
     }
     public enum FaceDir
@@ -164,10 +178,22 @@ public class InputController : MonoBehaviour
     private void Start()
     {
         //Initializing variables
-        col1Triggered = false;
         carTrans = car.GetComponent<Transform>();
 
         ReceiveApiRequest(apiEvents.GO);
+
+        //radiusResult = 0f;
+        positionResult = 0f;
+        positionCalc = 0f;
+
+        col1Triggered = false;
+        triggeredCol = false;
+        goEvent = false;
+        slowdownEvent = false;
+        stopEvent = false;
+        Warning = false;
+        sendinfoEvent = false;
+        InfrastructureDisActive = false;
     }
     private void Awake()
     {
@@ -249,23 +275,47 @@ public class InputController : MonoBehaviour
         switch (ApiRequest)
         {
             case apiEvents.GO:
-                //Call Update UI
+                goEvent = true;
+                slowdownEvent = false;
+                stopEvent = false;
+                sendinfoEvent = false;
                 break;
             case apiEvents.SLOWDOWN:
-                //Call Update UI
-                break;
-            case apiEvents.WARNING:
-                //Call Update UI
+                slowdownEvent = true;
+                goEvent = false;
+                stopEvent = false;
+                sendinfoEvent = false;
+                col1Triggered = true;
                 break;
             case apiEvents.STOP:
-                //Call Update UI
+                stopEvent = true;
+                goEvent = false;
+                slowdownEvent = false;
+                sendinfoEvent = false;
+                break;
+            case apiEvents.WARNING:
+                Warning = true;
+                slowdownEvent = true;
+                goEvent = false;
+                stopEvent = false;
+                sendinfoEvent = false;
                 break;
             case apiEvents.SENDINFO:
-                TimeDistanceCalc(_infrastructureObj);
-                //Call Update UI
+                sendinfoEvent = true;
+                goEvent = false;
+                slowdownEvent = false;
+                stopEvent = false;
+                SendCarInfo(_infrastructureObj);
+                triggeredCol = true;
+                InfrastructureDisActive = true;
                 break;
             default:
                 break;
+        }
+
+        if (InfrastructureDisActive)
+        {
+            UpdateDistanceCalc();
         }
     }
     private void LateUpdate()
@@ -300,10 +350,110 @@ public class InputController : MonoBehaviour
 
         CarMovement();
     }
+    private void UpdateDistanceCalc()
+    {
+        //Calculating distance to infrastructure elements
+        if (_infrastructureObj.tag.Contains("Beacon"))
+        {
+            if (triggeredCol)
+            {
+                //radiusResult = (obj2.radius - obj1.radius) / 3.6f;
+
+                positionResult = Vector3.Distance(initialCarPosition, _infrastructureObj.transform.position);// + new Vector3(0, 0, obj2.radius));
+
+                triggeredCol = false;
+            }
+
+            positionCalc = Vector3.Distance(initialCarPosition, car.transform.position) * 3.6f;
+            positionCalc = positionCalc - (obj2.radius) - 14f;
+
+            var result = positionResult - positionCalc;
+            if (result > 0)
+            {
+                InfrastructureDis = result * 36f;
+            }
+            else
+            {
+                InfrastructureDisActive = false;
+                Warning = false;
+            }
+            //if (col1Triggered)
+            //{
+
+            //}
+            //if (slowdownEvent)
+            //{
+            //    col1Triggered = false;
+            //}
+        }
+        else if (_infrastructureObj.tag.Contains("StopS") || _infrastructureObj.tag.Contains("TrafficL"))
+        {
+            if (col1Triggered)
+            {
+                if (triggeredCol)
+                {
+                    positionResult = Vector3.Distance(initialCarPosition, _infrastructureObj.transform.position);
+
+                    triggeredCol = false;
+                }
+                positionCalc = Vector3.Distance(initialCarPosition, car.transform.position);
+                positionCalc = positionCalc + 1f;
+
+                var result = positionResult - positionCalc;
+                if (result > 0)
+                {
+                    InfrastructureDis = result * 36f;
+                }
+                else
+                {
+                    InfrastructureDisActive = false;
+                    col1Triggered = false;
+                }
+
+            }
+        }
+    }
+    private void SendCarInfo(GameObject infrastructureObj)
+    {
+        //Calculating distance between car & infrastructure element & time to reach
+        initialCarPosition = car.transform.position;
+        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
+        timeBetweenObjs = (carDistance / speedCalc) * 3.6f;
+        col1Triggered = true;
+
+        //Method calls for Calculations
+        CarDirectionCalc();
+        //UpdateDistanceCalc();
+
+        //Sends informatin to infrastructure elements
+        switch (infrastructureObj.tag)
+        {
+            case "Beacon":
+                obj1 = _infrastructureObj.GetComponents<SphereCollider>()[0];
+                obj2 = _infrastructureObj.GetComponents<SphereCollider>()[1];
+                roadMaintenanceBeacon.ReceiveCarInfo(distanceBeforeM);
+                break;
+            case "North StopS":
+                stopSign.ReceiveCarInfo(_currentFaceDir, _currentRoadDir);
+                break;
+            case "North TrafficL":
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
+                break;
+            case "East TrafficL":
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
+                break;
+            case "West TrafficL":
+                trafficLight.ReceiveCarInfo(timeBetweenObjs);
+                break;
+            default:
+                break;
+        }
+        sendinfoEvent = false;
+    }
     private void CarMovement()
     {
         SetWheelParms();
-
+        //Pull out Stop Event ******
         //Car movement behaviour steering ~ front wheels & braking ~ back wheels
         if (braking > 0)
         {
@@ -322,70 +472,84 @@ public class InputController : MonoBehaviour
         {
             if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
             {
-                if (ApiRequest.Equals(apiEvents.GO))
-                {
-                    if (Speed <= maxSpeed)
-                    {
-                        frontWheelColDic.Item1.motorTorque = thrustTorque;
-                        frontWheelColDic.Item2.motorTorque = thrustTorque;
-                    }
-                    else
-                    {
-                        frontWheelColDic.Item1.motorTorque = 0f;
-                        frontWheelColDic.Item2.motorTorque = 0f;
-                    }
-                }
-                else if (ApiRequest.Equals(apiEvents.SLOWDOWN))
-                {
-                    if (Speed >= minSpeed)
-                    {
-                        frontWheelColDic.Item1.motorTorque = 0f;
-                        frontWheelColDic.Item2.motorTorque = 0f;
-                    }
-                    else
-                    {
-                        frontWheelColDic.Item1.motorTorque = thrustTorque;
-                        frontWheelColDic.Item2.motorTorque = thrustTorque;
-                    }
-                }
-                else if (ApiRequest.Equals(apiEvents.STOP))
+                if (stopEvent)
                 {
                     frontWheelColDic.Item1.motorTorque = 0f;
                     frontWheelColDic.Item2.motorTorque = 0f;
                 }
+                else
+                {
+                    if (goEvent)
+                    {
+                        if (Speed <= maxSpeed)
+                        {
+                            frontWheelColDic.Item1.motorTorque = thrustTorque;
+                            frontWheelColDic.Item2.motorTorque = thrustTorque;
+                        }
+                        else
+                        {
+                            frontWheelColDic.Item1.motorTorque = 0f;
+                            frontWheelColDic.Item2.motorTorque = 0f;
+                        }
+                    }
+                    else if (slowdownEvent)
+                    {
+                        if (Speed >= minSpeed)
+                        {
+                            frontWheelColDic.Item1.motorTorque = 0f;
+                            frontWheelColDic.Item2.motorTorque = 0f;
+                        }
+                        else
+                        {
+                            frontWheelColDic.Item1.motorTorque = thrustTorque;
+                            frontWheelColDic.Item2.motorTorque = thrustTorque;
+                        }
+                    }
+                    else if (Warning || sendinfoEvent)
+                    {
+                        //Do nothing & keep current parameters
+                    }
+                }
             }
             if (wheelColDic.TryGetValue("Back Wheels", out backWheelColDic))
             {
-                if (ApiRequest.Equals(apiEvents.GO))
+                if (stopEvent)
                 {
-                    if (Speed <= maxSpeed)
-                    {
-                        backWheelColDic.Item1.brakeTorque = 0f;
-                        backWheelColDic.Item2.brakeTorque = 0f;
-                    }
-                    else
-                    {
-                        backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
-                        backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
-                    }
+                    backWheelColDic.Item1.brakeTorque = 0.45f * _maxBrakingTorque;
+                    backWheelColDic.Item2.brakeTorque = 0.45f * _maxBrakingTorque;
                 }
-                else if (ApiRequest.Equals(apiEvents.SLOWDOWN))
+                else
                 {
-                    if (Speed >= minSpeed)
+                    if (goEvent)
                     {
-                        backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
-                        backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                        if (Speed <= maxSpeed)
+                        {
+                            backWheelColDic.Item1.brakeTorque = 0f;
+                            backWheelColDic.Item2.brakeTorque = 0f;
+                        }
+                        else
+                        {
+                            backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
+                            backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                        }
                     }
-                    else
+                    else if (slowdownEvent)
                     {
-                        backWheelColDic.Item1.brakeTorque = 0f;
-                        backWheelColDic.Item2.brakeTorque = 0f;
+                        if (Speed >= minSpeed)
+                        {
+                            backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
+                            backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                        }
+                        else
+                        {
+                            backWheelColDic.Item1.brakeTorque = 0f;
+                            backWheelColDic.Item2.brakeTorque = 0f;
+                        }
                     }
-                }
-                else if (ApiRequest.Equals(apiEvents.STOP))
-                {
-                    backWheelColDic.Item1.brakeTorque = 0.6f * _maxBrakingTorque;
-                    backWheelColDic.Item2.brakeTorque = 0.6f * _maxBrakingTorque;
+                    else if (Warning || sendinfoEvent)
+                    {
+                        //Do nothing & keep current parameters
+                    }
                 }
             }
         }
@@ -405,47 +569,6 @@ public class InputController : MonoBehaviour
             wheel.GetWorldPose(out _wheelPosition, out _wheelQuaternion);
             wheel.transform.GetChild(0).transform.position = _wheelPosition;
             wheel.transform.GetChild(0).transform.rotation = _wheelQuaternion;
-        }
-    }
-    private void TimeDistanceCalc(GameObject infrastructureObj)
-    {
-        //Calculating distance between car & infrastructure element & time to reach
-        carDistance = Vector3.Distance(car.transform.position, infrastructureObj.transform.position);
-        timeBetweenObjs = (carDistance / speedCalc) * 3.6f;
-
-        //Calculating distance to road maintenance
-        if (infrastructureObj.tag.Contains("Beacon") && !col1Triggered)
-        {
-            var obj1 = infrastructureObj.GetComponents<SphereCollider>()[0];
-            var obj2 = infrastructureObj.GetComponents<SphereCollider>()[1];
-
-            distanceBeforeM = (obj2.radius - obj1.radius) / 3.6f;
-
-            col1Triggered = true;
-        }
-
-        CarDirectionCalc();
-
-        //Sends informatin to infrastructure elements
-        switch (infrastructureObj.tag)
-        {
-            case "Beacon":
-                roadMaintenanceBeacon.ReceiveCarInfo(distanceBeforeM);
-                break;
-            case "North StopS":
-                stopSign.ReceiveCarInfo(_currentFaceDir, _currentRoadDir);
-                break;
-            case "North TrafficL":
-                trafficLight.ReceiveCarInfo(timeBetweenObjs);
-                break;
-            case "East TrafficL":
-                trafficLight.ReceiveCarInfo(timeBetweenObjs);
-                break;
-            case "West TrafficL":
-                trafficLight.ReceiveCarInfo(timeBetweenObjs);
-                break;
-            default:
-                break;
         }
     }
 }

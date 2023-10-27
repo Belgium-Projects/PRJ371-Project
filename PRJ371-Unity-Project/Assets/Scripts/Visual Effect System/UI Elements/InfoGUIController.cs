@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.UI;
@@ -35,16 +37,16 @@ public class InfoGUIController : MonoBehaviour
     //Global variables
     private InputController inputController;
     private string _currentApiEvent;
-    private string _speed;
+    private float _speed;
     private string _infrastructureDis;
     private bool _warning;
     private bool _infrastructureDisActive;
     private float _speedFiller;
+    private float _maxSpeed;
     void Start()
     {
-        //Make bool to send through with trafficls & Beacon & StopS to calculatedistance and send to UI in Inputcontroller
-        //Set camera starting point at car on angle
-        //Change InfrastructureDis to * 36 in Inputcontroller
+        //Add Bend Collider & Extend Circle%Stop Road
+        //Set camera starting point at car on angle *************
 
         //Finds scripts necessary
         inputController = FindObjectOfType<InputController>();
@@ -53,7 +55,8 @@ public class InfoGUIController : MonoBehaviour
         _currentApiEvent = "Go";
         _warning = false;
         _speedFiller = 0f;
-        _speed = "0";
+        _maxSpeed = 0f;
+        _speed = 0f;
         _infrastructureDisActive = false;
         _infrastructureDis = "0m";
     }
@@ -80,40 +83,39 @@ public class InfoGUIController : MonoBehaviour
         //Gets the values from the InputController
         _currentApiEvent = inputController.ApiRequest.ToString();
         _warning = inputController.Warning;
-        _speed = inputController.Speed.ToString("fo");
-        _infrastructureDis = inputController.InfrastructureDis.ToString("fo");
+        _speed = inputController.Speed;
+        _maxSpeed = inputController.MaxSpeed;
+        _infrastructureDisActive = inputController.InfrastructureDisActive;
+        _infrastructureDis = inputController.InfrastructureDis.ToString("f0");
 
         //Method call with retreived variables
         CalculateUIvalues(_currentApiEvent, _warning, _speedFiller, _speed, _infrastructureDisActive, _infrastructureDis);
     }
-    private void CalculateUIvalues(string currentApiEvent, bool warning, float speedFiller, string speed, bool infrastructureDisActive, string infrastructureDis)
+    private void CalculateUIvalues(string currentApiEvent, bool warning, float speedFiller, float speed, bool infrastructureDisActive, string infrastructureDis)
     {
         //Change the values for display
         currentApiEvent = $"Event: {currentApiEvent}";
-        speedFiller = Mathf.Clamp(speedFiller, 0f, 1f);
 
-        //Checks if infrastructureDis is outputting a 0 value
-        if (infrastructureDis.Equals("0"))
-        {
-            infrastructureDisActive = false;
-        }
-        else
+        //Clamping value between 0~1 & increasing it by 0.001f
+        speedFiller = Mathf.Lerp(speed / _maxSpeed, 1, 0.0001f);
+
+        //Checks if infrastructureDis is true then set the distance
+        if (infrastructureDisActive)
         {
             infrastructureDis = $"{infrastructureDis}m";
-            infrastructureDisActive = true;
         }
 
         //Method call with changed variables
         SetUIvalues(currentApiEvent, warning, speedFiller, speed, infrastructureDisActive, infrastructureDis);
     }
-    private void SetUIvalues(string currentApiEvent, bool warning, float speedFiller, string speed, bool infrastructureDisActive, string infrastructureDis)
+    private void SetUIvalues(string currentApiEvent, bool warning, float speedFiller, float speed, bool infrastructureDisActive, string infrastructureDis)
     {
         //Setting the variable values to UI elements
         carUIelements.currentEvent.text = currentApiEvent;
         carUIelements.warningSign.SetActive(warning);
         carUIelements.speedBar.fillAmount = speedFiller;
-        carUIelements.speedReadout.text = speed;
-        carUIelements.distanceReadout.GetComponentInParent<GameObject>().SetActive(infrastructureDisActive);
+        carUIelements.speedReadout.text = speed.ToString("f0");
+        carUIelements.distanceReadout.transform.parent.gameObject.SetActive(infrastructureDisActive);
 
         //Checks if infrastructureDis is Active
         if (infrastructureDisActive)

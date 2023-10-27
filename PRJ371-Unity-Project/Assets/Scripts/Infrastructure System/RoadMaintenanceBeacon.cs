@@ -33,7 +33,7 @@ public class RoadMaintenanceBeacon : MonoBehaviour
             {
                 _dualColDic[current.tag] = new Tuple<bool, bool>(false, false);
                 inputController.ReceiveApiRequest(InputController.apiEvents.GO);
-                enterIndex = 0;
+                exitIndex = 0;
             }
         }
         else

@@ -2760,10 +2760,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carUIelements:
-    speedBar: {fileID: 1979759031}
-    speedReadout: {fileID: 1498497259}
     currentEvent: {fileID: 1250803844}
     warningSign: {fileID: 872317618}
+    speedBar: {fileID: 1979759031}
+    speedReadout: {fileID: 1498497259}
     distanceReadout: {fileID: 1169674282}
   menuUIelements:
     playPauseBut: {fileID: 763964907}
