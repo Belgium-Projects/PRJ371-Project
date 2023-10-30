@@ -150,10 +150,9 @@ public class CameraController : MonoBehaviour
         {
             return;
         }
-        Debug.LogError("Performing Zoom");
+
         //Adjust the current zoom value based on the direction of the scroll
         CurrentZoom = Mathf.Clamp(_currentZoomAmount - context.ReadValue<Vector2>().y, ZoomMax, ZoomMin);
-        Debug.LogError(CurrentZoom);
     }
     public void OnLockToggle(InputAction.CallbackContext context)
     {
