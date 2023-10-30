@@ -8865,6 +8865,7 @@ MonoBehaviour:
   ZoomMin: 10
   CameraSpeed: 12
   RotationSpeed: 10
+  ZoomSpeed: 4
 --- !u!1 &1725731114
 GameObject:
   m_ObjectHideFlags: 0
