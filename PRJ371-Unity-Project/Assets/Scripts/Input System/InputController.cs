@@ -59,7 +59,7 @@ public class InputController : MonoBehaviour
     private float carDistance;
     private float timeBetweenObjs;
     private float distanceBeforeM;
-    private float acceleration;
+    private float _acceleration;
     private float steering;
     private float thrustTorque;
     private int speedCalc;
@@ -71,10 +71,11 @@ public class InputController : MonoBehaviour
     //Get|Set variables
     public apiEvents ApiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
     public bool Warning { get { return _warning; } set { _warning = value; } }
+    public bool InfrastructureDisActive { get { return _infrastructureDisActive; } set { _infrastructureDisActive = value; } }
     public float Speed { get { return _speed; } set { _speed = value; } }
     public float MaxSpeed { get { return maxSpeed; }}
     public float InfrastructureDis { get { return _infrastructurDis; } set { _infrastructurDis = value; } }
-    public bool InfrastructureDisActive { get { return _infrastructureDisActive; } set { _infrastructureDisActive = value; } }
+    public float CurrentAcceleration { get { return _acceleration; } set { _acceleration = value; } }
     public Dictionary<string, Tuple<bool, bool>> dualColDic { get {return _dualColDic;} set {_dualColDic = value;} }
     public FaceDir currentFaceDir { get { return _currentFaceDir; } set { _currentFaceDir = value; } }
     public FaceDir currentRoadDir { get { return _currentRoadDir; } set { _currentRoadDir = value; } }
@@ -271,11 +272,11 @@ public class InputController : MonoBehaviour
         //Gets input value and setting the different axis
         moveInput = playerInput.actions["Move"].ReadValue<Vector2>();
 
-        acceleration = moveInput.y;
+        CurrentAcceleration = moveInput.y;
         steering = moveInput.x;
 
         //Limiting variable values to a range
-        acceleration = Mathf.Clamp(acceleration, -1f, 1f);
+        CurrentAcceleration = Mathf.Clamp(CurrentAcceleration, -1f, 1f);
         steering = Mathf.Clamp(steering, -1f, 1f) * _maxSteeringAngle;
         braking = Mathf.Clamp(braking, 0f, 1f) * _maxBrakingTorque;
 
@@ -339,21 +340,21 @@ public class InputController : MonoBehaviour
         speedCalc = int.Parse(MathF.Floor((float)(car.GetComponent<Rigidbody>().velocity.magnitude * 3.6)).ToString("f0"));
 
         //Simulating gear change from drive ~ reverse
-        if (acceleration > 0f)
+        if (CurrentAcceleration > 0f)
         {
             if (Speed < 2)
             {
-                thrustTorque = acceleration * torque;
+                thrustTorque = CurrentAcceleration * torque;
             }
         }
-        else if (acceleration < 0f)
+        else if (CurrentAcceleration < 0f)
         {
             if (Speed < 2)
             {
-                thrustTorque = acceleration * torque;
+                thrustTorque = CurrentAcceleration * torque;
             }
         }
-        else if (acceleration == 0f)
+        else if (CurrentAcceleration == 0f)
         {
             thrustTorque = 0f;
         }

@@ -27,6 +27,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float RotationSpeed;
 
     //Global variables
+    private InputController inputController;
     private Camera _actualCamera;
     private Vector3 _cameraPositionTarget;
     private Vector3 _moveTarget;
@@ -58,6 +59,8 @@ public class CameraController : MonoBehaviour
     }
     void Start()
     {
+        //Gets the Input Controller script
+        inputController = FindObjectOfType<InputController>();
         //Gets the camera component in the parent
         _actualCamera = GetComponentInChildren<Camera>();
 
@@ -89,7 +92,11 @@ public class CameraController : MonoBehaviour
         else
         {
             //Flips camera between infront or back of car
-            if (followBehind)
+            if (followBehind && inputController.CurrentAcceleration < 0)
+            {
+                wantedPosition = targetCar.TransformPoint(0, height, distance);
+            }
+            else if (followBehind && inputController.CurrentAcceleration >= 0)
             {
                 wantedPosition = targetCar.TransformPoint(0, height, -distance);
             }
