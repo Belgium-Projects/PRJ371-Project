@@ -17,6 +17,7 @@ TagManager:
   - South Road
   - Front Wheels
   - Back Wheels
+  - Intersection Road
   layers:
   - Default
   - TransparentFX

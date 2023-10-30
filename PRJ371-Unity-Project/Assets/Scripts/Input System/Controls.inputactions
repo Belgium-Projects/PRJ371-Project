@@ -141,6 +141,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Camera FreeCam Toggle",
+                    "type": "Button",
+                    "id": "a0f2fae1-fe8b-439e-bfa2-207fb0443124",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -240,6 +249,17 @@
                     "processors": "",
                     "groups": "Keyboard & Mouse",
                     "action": "Camera Lock Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0acc1c0b-8a14-489d-8987-ba231a309240",
+                    "path": "<Keyboard>/backslash",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard & Mouse",
+                    "action": "Camera FreeCam Toggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

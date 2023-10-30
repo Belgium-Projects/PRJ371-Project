@@ -2863,7 +2863,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1696789664}
         m_TargetAssemblyTypeName: CameraController, Assembly-CSharp
-        m_MethodName: onLockToggle
+        m_MethodName: OnLockToggle
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2875,6 +2875,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 4243651e-269c-4fd9-b365-c113136260b7
     m_ActionName: Camera/Camera Lock Toggle[/Keyboard/rightShift]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1696789664}
+        m_TargetAssemblyTypeName: CameraController, Assembly-CSharp
+        m_MethodName: OnCamToggle
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a0f2fae1-fe8b-439e-bfa2-207fb0443124
+    m_ActionName: Camera/Camera FreeCam Toggle[/Keyboard/backslash]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard & Mouse
   m_DefaultActionMap: Camera
@@ -4051,7 +4067,7 @@ GameObject:
   - component: {fileID: 979689502}
   m_Layer: 0
   m_Name: Central Intersection
-  m_TagString: Bend Road
+  m_TagString: Intersection Road
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8835,6 +8851,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea798829889059a41b550b44706b8433, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetCar: {fileID: 2876367916122106005}
+  distance: 1.5
+  height: -0.85
+  damping: 10
+  rotationDamping: 10
+  smoothRotation: 0
+  followBehind: 1
   LookOffset: 1
   CameraAngle: 55
   DefaultZoom: 5
@@ -12098,11 +12121,21 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 4243651e-269c-4fd9-b365-c113136260b7
     m_ActionName: Camera/Camera Lock Toggle[/Keyboard/rightShift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: a0f2fae1-fe8b-439e-bfa2-207fb0443124
+    m_ActionName: Camera/Camera FreeCam Toggle[/Keyboard/backslash]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!4 &2876367916122106005 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6324422251475902077, guid: a1346bc7a17aa044e882d306e2e5743d,
+    type: 3}
+  m_PrefabInstance: {fileID: 1598345425265345417}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3373308323130669783
 GameObject:
   m_ObjectHideFlags: 0

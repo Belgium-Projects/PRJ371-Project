@@ -53,7 +53,11 @@ public class CollisionDetection : MonoBehaviour
                     break;
                 case "Bend Road":
                     inputController.currentRoadDir = InputController.FaceDir.Bend;
-                    inputController.ColliderTriggered(false);
+                    inputController.ColliderTriggered(false, false);
+                    break;
+                case "Intersection Road":
+                    inputController.currentRoadDir = InputController.FaceDir.Bend;
+                    inputController.ColliderTriggered(false, true);
                     break;
                 case "North TrafficL":
                     trafficLight.ColliderTriggered(this.gameObject, false);
@@ -85,7 +89,11 @@ public class CollisionDetection : MonoBehaviour
             }
             else if (this.tag.Contains("Bend"))
             {
-                inputController.ColliderTriggered(true);
+                inputController.ColliderTriggered(true, false);
+            }
+            else if (this.tag.Contains("Intersection"))
+            {
+                inputController.ColliderTriggered(true, true);
             }
         }
     }

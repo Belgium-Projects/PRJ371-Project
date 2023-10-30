@@ -89,7 +89,7 @@ public class InfoGUIController : MonoBehaviour
     private void CallUIinfo()
     {
         //Gets the values from the InputController
-        _currentApiEvent = inputController.ApiRequest.ToString();
+        _currentApiEvent = inputController.ApiRequest.ToString().ToLower();
         _warning = inputController.Warning;
         _speed = inputController.Speed;
         _maxSpeed = inputController.MaxSpeed;
@@ -102,7 +102,7 @@ public class InfoGUIController : MonoBehaviour
     private void CalculateUIvalues(string currentApiEvent, bool warning, float speedFiller, float speed, bool infrastructureDisActive, string infrastructureDis)
     {
         //Change the values for display
-        currentApiEvent = $"Event: {currentApiEvent}";
+        currentApiEvent = $"Event: {currentApiEvent.FirstCharacterToUpper()}";
 
         //Clamping value between 0~1 & increasing it by 0.001f
         speedFiller = Mathf.Lerp(speed / _maxSpeed, 1, 0.001f);

@@ -161,7 +161,7 @@ public class InputController : MonoBehaviour
             currentFaceDir = FaceDir.West;
         }
     }
-    public void ColliderTriggered(bool resetCol)
+    public void ColliderTriggered(bool resetCol, bool intersection)
     {
         //Car slows down in a bend in the road
         if (resetCol)
@@ -170,7 +170,18 @@ public class InputController : MonoBehaviour
         }
         else
         {
-            ReceiveApiRequest(apiEvents.SLOWDOWN);
+            if (!intersection)
+            {
+                ReceiveApiRequest(apiEvents.SLOWDOWN);
+            }
+            else if (intersection && currentFaceDir.Equals(FaceDir.East) || currentFaceDir.Equals(FaceDir.West))
+            {
+                ReceiveApiRequest(apiEvents.GO);
+            }
+            else
+            {
+                ReceiveApiRequest(apiEvents.SLOWDOWN);
+            }
         }
     }
     private void Start()
