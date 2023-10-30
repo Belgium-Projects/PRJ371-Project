@@ -5,10 +5,12 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.PackageManager;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using static UnityEditor.Rendering.FilterWindow;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public class CarUIelements
@@ -43,6 +45,7 @@ public class InfoGUIController : MonoBehaviour
     private bool _infrastructureDisActive;
     private float _speedFiller;
     private float _maxSpeed;
+    private bool _gamepaused;
     void Start()
     {
         //Add Bend Collider & Extend Circle%Stop Road
@@ -72,6 +75,9 @@ public class InfoGUIController : MonoBehaviour
         if (menuUIelements.playPauseBut.Equals(null)) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(menuUIelements.playPauseBut));
         if (menuUIelements.restartBut.Equals(null)) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(menuUIelements.restartBut));
         if (menuUIelements.exitBut.Equals(null)) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(menuUIelements.exitBut));
+
+        _gamepaused = true;
+        Time.timeScale = 0f;
     }
     void Update()
     {
@@ -122,5 +128,29 @@ public class InfoGUIController : MonoBehaviour
         {
             carUIelements.distanceReadout.text = infrastructureDis;
         }
+    }
+    public void ChangeGameState()
+    {
+        Debug.LogError("Change Gamestate");
+        _gamepaused = _gamepaused ? false : true;
+
+        if (_gamepaused)
+        {
+            Time.timeScale = 0f;
+        }
+        else
+        {
+            Time.timeScale = 1f;
+        }
+    }
+    public void RestartGame()
+    {
+        Debug.LogError("Restart");
+        SceneManager.LoadScene(0);
+    }
+    public void QuitGame()
+    {
+        Debug.LogError("Exit");
+        Application.Quit();
     }
 }
