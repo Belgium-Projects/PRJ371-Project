@@ -29,6 +29,7 @@ public class MenuUIelements
     public GameObject playPauseBut;
     public GameObject restartBut;
     public GameObject exitBut;
+    public TextMeshProUGUI changedStateText;
 }
 public class InfoGUIController : MonoBehaviour
 {
@@ -77,6 +78,7 @@ public class InfoGUIController : MonoBehaviour
         if (menuUIelements.exitBut.Equals(null)) Debug.LogErrorFormat(this, "Member \"{0}\" is required.", nameof(menuUIelements.exitBut));
 
         _gamepaused = true;
+        menuUIelements.changedStateText.color = new Color32(255, 246, 0, 255);
         Time.timeScale = 0f;
     }
     void Update()
@@ -103,7 +105,7 @@ public class InfoGUIController : MonoBehaviour
         currentApiEvent = $"Event: {currentApiEvent}";
 
         //Clamping value between 0~1 & increasing it by 0.001f
-        speedFiller = Mathf.Lerp(speed / _maxSpeed, 1, 0.0001f);
+        speedFiller = Mathf.Lerp(speed / _maxSpeed, 1, 0.001f);
 
         //Checks if infrastructureDis is true then set the distance
         if (infrastructureDisActive)
@@ -131,26 +133,25 @@ public class InfoGUIController : MonoBehaviour
     }
     public void ChangeGameState()
     {
-        Debug.LogError("Change Gamestate");
         _gamepaused = _gamepaused ? false : true;
 
         if (_gamepaused)
         {
             Time.timeScale = 0f;
+            menuUIelements.changedStateText.color = new Color32(255, 246, 0, 255);
         }
         else
         {
             Time.timeScale = 1f;
+            menuUIelements.changedStateText.color = new Color32(255, 255, 255, 200);
         }
     }
     public void RestartGame()
     {
-        Debug.LogError("Restart");
         SceneManager.LoadScene(0);
     }
     public void QuitGame()
     {
-        Debug.LogError("Exit");
         Application.Quit();
     }
 }

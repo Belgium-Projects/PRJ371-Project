@@ -99,13 +99,11 @@ public class InputController : MonoBehaviour
     {
         //Basic Arduino event request
         ApiRequest = request;
-        Debug.LogError($"11111 ~ Received {request} Event");
     }
     public void ReceiveApiObjRequest(apiEvents request, GameObject infrastructureObj)
     {
         //Advanced Arduino event request
         ApiRequest = request;
-        Debug.LogError($"22222 ~ Received {request} Event");
         _infrastructureObj = infrastructureObj;
     }
     private void PopulateInfColDic()
