@@ -21,6 +21,7 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float ZoomMin;
     [SerializeField] private float CameraSpeed;
     [SerializeField] private float RotationSpeed;
+    [SerializeField] private float ZoomSpeed;
 
     //Global variables
     private InputController inputController;
@@ -73,17 +74,17 @@ public class CameraController : MonoBehaviour
         if (toggleFreeCam)
         {
             //Lerp  the camera to a new move target position
-            transform.position = Vector3.Lerp(transform.position, _moveTarget, Time.deltaTime * InternalMoveSpeed);
+            transform.position = Vector3.Lerp(transform.position, _moveTarget, Time.deltaTime * CameraSpeed);
 
             //Move the _actualCamera's local position based on the new zoom factor
             _actualCamera.transform.localPosition = Vector3.Lerp(_actualCamera.transform.localPosition,
-                _cameraPositionTarget, Time.deltaTime * _internalZoomSpeed);
+                _cameraPositionTarget, Time.deltaTime * ZoomSpeed);
 
             //Set the target rotation based on the mouse delta position and our rotation speed
             _rotationTarget *= Quaternion.AngleAxis(_mouseDelta.x * Time.deltaTime * RotationSpeed, Vector3.up);
 
             //Slerp the camera rig's rotation based on the new target
-            transform.rotation = Quaternion.Slerp(transform.rotation, _rotationTarget, Time.deltaTime * InternalRotationSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, _rotationTarget, Time.deltaTime * RotationSpeed);
         }
         else
         {
@@ -149,8 +150,10 @@ public class CameraController : MonoBehaviour
         {
             return;
         }
+        Debug.LogError("Performing Zoom");
         //Adjust the current zoom value based on the direction of the scroll
         CurrentZoom = Mathf.Clamp(_currentZoomAmount - context.ReadValue<Vector2>().y, ZoomMax, ZoomMin);
+        Debug.LogError(CurrentZoom);
     }
     public void OnLockToggle(InputAction.CallbackContext context)
     {
