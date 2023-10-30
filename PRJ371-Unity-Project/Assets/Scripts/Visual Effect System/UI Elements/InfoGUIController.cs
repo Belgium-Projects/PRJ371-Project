@@ -40,18 +40,15 @@ public class InfoGUIController : MonoBehaviour
     //Global variables
     private InputController inputController;
     private string _currentApiEvent;
-    private float _speed;
     private string _infrastructureDis;
     private bool _warning;
     private bool _infrastructureDisActive;
+    private bool _gamepaused;
+    private float _speed;
     private float _speedFiller;
     private float _maxSpeed;
-    private bool _gamepaused;
     void Start()
     {
-        //Add Bend Collider & Extend Circle%Stop Road
-        //Set camera starting point at car on angle *************
-
         //Finds scripts necessary
         inputController = FindObjectOfType<InputController>();
 
@@ -133,8 +130,10 @@ public class InfoGUIController : MonoBehaviour
     }
     public void ChangeGameState()
     {
+        //Change game state if clicked
         _gamepaused = _gamepaused ? false : true;
 
+        //Freezes game if paused & unfreeze if play
         if (_gamepaused)
         {
             Time.timeScale = 0f;
@@ -148,10 +147,12 @@ public class InfoGUIController : MonoBehaviour
     }
     public void RestartGame()
     {
+        //Reloads main scene
         SceneManager.LoadScene(0);
     }
     public void QuitGame()
     {
+        //Quits simulation
         Application.Quit();
     }
 }

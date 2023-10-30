@@ -31,6 +31,7 @@ public class CameraController : MonoBehaviour
     private Vector3 _cameraPositionTarget;
     private Vector3 _moveTarget;
     private Vector3 _moveDirection;
+    private Vector3 wantedPosition;
     private Vector2 _mouseDelta;
     private Quaternion _rotationTarget;
     private const float InternalMoveSpeed = 4;
@@ -39,6 +40,8 @@ public class CameraController : MonoBehaviour
     private bool toggleFreeCam;
     private float _currentZoomAmount;
     private float _internalZoomSpeed;
+
+    //Get|Set variables
     public float CurrentZoom
     {
         get => _currentZoomAmount;
@@ -85,13 +88,15 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            Vector3 wantedPosition;
-
             //Flips camera between infront or back of car
             if (followBehind)
+            {
                 wantedPosition = targetCar.TransformPoint(0, height, -distance);
+            }
             else
+            {
                 wantedPosition = targetCar.TransformPoint(0, height, distance);
+            }
 
             //Lerp the camera rig's rotation based on the new target
             transform.position = Vector3.Lerp(transform.position, wantedPosition, Time.deltaTime * damping);

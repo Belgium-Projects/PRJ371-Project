@@ -51,7 +51,6 @@ public class InputController : MonoBehaviour
     private bool slowdownEvent;
     private bool stopEvent;
     private bool sendinfoEvent;
-    //private float radiusResult;
     private float positionResult;
     private float positionCalc;
     private float _speed;
@@ -68,6 +67,8 @@ public class InputController : MonoBehaviour
     private Tuple<WheelCollider, WheelCollider> frontWheelColDic;
     private Tuple<WheelCollider, WheelCollider> backWheelColDic;
     private Dictionary<string, Tuple<WheelCollider, WheelCollider>> wheelColDic;
+
+    //Get|Set variables
     public apiEvents ApiRequest { get { return _apiRequest; } set { _apiRequest = value; } }
     public bool Warning { get { return _warning; } set { _warning = value; } }
     public float Speed { get { return _speed; } set { _speed = value; } }
@@ -364,19 +365,22 @@ public class InputController : MonoBehaviour
         //Calculating distance to infrastructure elements
         if (_infrastructureObj.tag.Contains("Beacon"))
         {
+            //Calculating initial distance between car & infratructure element
             if (triggeredCol)
             {
-                //radiusResult = (obj2.radius - obj1.radius) / 3.6f;
-
-                positionResult = Vector3.Distance(initialCarPosition, _infrastructureObj.transform.position);// + new Vector3(0, 0, obj2.radius));
+                positionResult = Vector3.Distance(initialCarPosition, _infrastructureObj.transform.position);
 
                 triggeredCol = false;
             }
 
+            //Gets car current distance compared to initial distance
             positionCalc = Vector3.Distance(initialCarPosition, car.transform.position) * 3.6f;
             positionCalc = positionCalc - (obj2.radius) - 14f;
 
+            //Minus the current distance from the initial starting point
             var result = positionResult - positionCalc;
+
+            //Changing values for UI display
             if (result > 0)
             {
                 InfrastructureDis = result * 36f;
@@ -386,29 +390,26 @@ public class InputController : MonoBehaviour
                 InfrastructureDisActive = false;
                 Warning = false;
             }
-            //if (col1Triggered)
-            //{
-
-            //}
-            //if (slowdownEvent)
-            //{
-            //    col1Triggered = false;
-            //}
         }
         else if (_infrastructureObj.tag.Contains("StopS") || _infrastructureObj.tag.Contains("TrafficL"))
         {
             if (col1Triggered)
             {
+                //Calculating initial distance between car & infratructure element
                 if (triggeredCol)
                 {
                     positionResult = Vector3.Distance(initialCarPosition, _infrastructureObj.transform.position);
 
                     triggeredCol = false;
                 }
+                //Gets car current distance compared to initial distance
                 positionCalc = Vector3.Distance(initialCarPosition, car.transform.position);
-                positionCalc = positionCalc + 1f;
+                positionCalc = positionCalc + 1.4f;
 
+                //Minus the current distance from the initial starting point
                 var result = positionResult - positionCalc;
+
+                //Changing values for UI display
                 if (result > 0)
                 {
                     InfrastructureDis = result * 36f;
@@ -432,7 +433,6 @@ public class InputController : MonoBehaviour
 
         //Method calls for Calculations
         CarDirectionCalc();
-        //UpdateDistanceCalc();
 
         //Sends informatin to infrastructure elements
         switch (infrastructureObj.tag)
@@ -462,17 +462,18 @@ public class InputController : MonoBehaviour
     private void CarMovement()
     {
         SetWheelParms();
-        //Pull out Stop Event ******
         //Car movement behaviour steering ~ front wheels & braking ~ back wheels
         if (braking > 0)
         {
             if (wheelColDic.TryGetValue("Front Wheels", out frontWheelColDic))
             {
+                //Sets torque to front wheels to zero
                 frontWheelColDic.Item1.motorTorque = 0f;
                 frontWheelColDic.Item2.motorTorque = 0f;
             }
             if (wheelColDic.TryGetValue("Back Wheels", out backWheelColDic))
             {
+                //Applies braking to back wheels
                 backWheelColDic.Item1.brakeTorque = braking;
                 backWheelColDic.Item2.brakeTorque = braking;
             }
@@ -488,6 +489,7 @@ public class InputController : MonoBehaviour
                 }
                 else
                 {
+                    //Check events and sets movements acordingly
                     if (goEvent)
                     {
                         if (Speed <= maxSpeed)
@@ -529,6 +531,7 @@ public class InputController : MonoBehaviour
                 }
                 else
                 {
+                    //Check events and sets braking acordingly
                     if (goEvent)
                     {
                         if (Speed <= maxSpeed)

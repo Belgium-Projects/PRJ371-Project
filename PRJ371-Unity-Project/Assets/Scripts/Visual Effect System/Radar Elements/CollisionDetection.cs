@@ -13,21 +13,26 @@ public class CollisionDetection : MonoBehaviour
     private StopSign stopSign;
     void Start()
     {
+        //Finds the required scripts
         inputController = FindObjectOfType<InputController>();
         roadMaintenanceBeacon = FindObjectOfType<RoadMaintenanceBeacon>();
         trafficLight = FindObjectOfType<TrafficLight>();
         stopSign = FindObjectOfType<StopSign>();
 
+        //Method call to get all componenets with this script on it
         RetreiveAllColliders();
     }
     public CollisionDetection[] RetreiveAllColliders()
     {
+        //Creates an array with all the colliders
         CollisionDetection[] allColliders = FindObjectsOfType(typeof(CollisionDetection)) as CollisionDetection[];
 
         return allColliders.Distinct().ToArray();
     }
     private void OnTriggerEnter(Collider other)
     {
+        //Tag checks to get what infrastructure colliders where entered
+        //Sends the necessary info to the scripts accordingly
         if (other.CompareTag("Car"))
         {
             switch (this.tag)
@@ -81,6 +86,8 @@ public class CollisionDetection : MonoBehaviour
     }
     private void OnTriggerExit(Collider other)
     {
+        //Tag checks to get what infrastructure colliders where exited
+        //Sends the necessary info to the scripts accordingly
         if (other.CompareTag("Car"))
         {
             if (this.tag.Contains("Beacon"))

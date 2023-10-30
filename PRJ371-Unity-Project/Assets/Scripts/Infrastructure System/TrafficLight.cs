@@ -16,6 +16,7 @@ public class TrafficLights
 }
 public enum currentColor
 {
+    //Different traffic light colors
     Red, Green, Yellow
 }
 public class TrafficLight : MonoBehaviour
@@ -42,14 +43,17 @@ public class TrafficLight : MonoBehaviour
     public bool roadDirChanged { get; set; }
     public void ColliderTriggered(GameObject current, bool resetCol)
     {
+        //Currents is the infrastructure GameObject
         _current = current;
 
+        //Called when the Collider is entered
         if (resetCol)
         {
             if (calledIndex == 0)
             {
                 _dualColDic[current.tag] = new Tuple<bool, bool>(false, false);
 
+                //Logic sets the current traffic light colliders active using car & road direction
                 if (current.tag.Contains("South"))
                 {
                     if (inputController.currentFaceDir.Equals(InputController.FaceDir.North))
@@ -84,6 +88,7 @@ public class TrafficLight : MonoBehaviour
         }
         else
         {
+            //Request info from the Input Controller
             inputController.ReceiveApiObjRequest(InputController.apiEvents.SENDINFO, current);
             calledIndex++;
 
@@ -100,9 +105,11 @@ public class TrafficLight : MonoBehaviour
     }
     private void ChangeTrafficLCol(TrafficLights selectTrafficL)
     {
+        //Enables current road traffic loght
         selectTrafficL.parent.GetComponents<Collider>()[0].enabled = true;
         selectTrafficL.parent.GetComponents<Collider>()[1].enabled = true;
 
+        //Disables the other 2 traffic loghts
         foreach (var light in trafficLDic)
         {
             if (!selectTrafficL.parent.CompareTag(light.Key))
@@ -114,18 +121,22 @@ public class TrafficLight : MonoBehaviour
     }
     public void ReceiveCarInfo(float timeBetweenObjs)
     {
+        //Variables received by Input Controller
         _timeBetweenObjs = timeBetweenObjs;
 
         receivedCarInfo = true;
     }
     void Start()
     {
+        //Gets the Input Controller script
         inputController = FindObjectOfType<InputController>();
 
+        //Iniliazizes variables
         calledIndex = 0;
         coIsRunning = false;
         _dualColDic = inputController.dualColDic;
 
+        //Creates Dictionary based of Editor list
         trafficLDic = trafficLights.ToDictionary(keySelector: m => m.parent.tag, elementSelector: m => m);
 
         UpdateLights(_colorIndex);
@@ -146,6 +157,7 @@ public class TrafficLight : MonoBehaviour
     }
     private void LateUpdate()
     {
+        //Sends final request to Input Controller when info is received
         if (receivedCarInfo)
         {
             SendApiRequest();
@@ -154,6 +166,7 @@ public class TrafficLight : MonoBehaviour
     }
     private void SendApiRequest()
     {
+        //Condition checks for the traffic light & sending appropriate event
         if (_dualColDic.TryGetValue(_current.tag, out currentColDic))
         {
             if (trafficLDic.TryGetValue(_current.tag, out sendTrafficLReq))
@@ -205,6 +218,7 @@ public class TrafficLight : MonoBehaviour
     }
     IEnumerator WaitForGreenL()
     {
+        //Co-routine to wait for green light before event is set to Go
         if (coIsRunning)
         {
             yield break;
